@@ -66,18 +66,8 @@ pen deactivate
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on GitHub, even for the smallest bug or the smallest idea.
+If there is any issue you see that you might want to try doing, just let a comment on the issue and I will let it to you.
 
 ## License
 
 This project is licensed under the `MIT` License. See the LICENSE file for details.
-
-
-## Quick temporary todos (ignore if not developping pen):
-
-If you want a release build with all stable optimizations active (PGO, etc),
-please run ./configure --enable-optimizations
-
-WARNING: The scripts pip3 and pip3.11 are installed in '/home/azom/.pen/pythonVersions/python_3.11.9/bin' which is not on PATH.
-  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
-
-Do shortcuts like pen a for pen activate
