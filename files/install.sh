@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Define variables
 PEN_DIR="$HOME/.pen"
@@ -22,10 +22,13 @@ mkdir -p "$PYTHON_VERSIONS_DIR"
 
 # Add alias to the bashrc file
 if ! grep -q "alias pen=" "$BASHRC"; then
-    echo 'alias pen=". $HOME/.pen/pen.sh"' >> "$BASHRC"
+    {
+        echo -e '\n# pen'
+        echo 'alias pen=". $HOME/.pen/pen.sh"'
+    } >>"$BASHRC"
     echo "Alias for pen added to $BASHRC"
 else
     echo "Alias for pen already exists in $BASHRC"
 fi
-exec $SHELL
-echo "Installation complete."
+echo "Installation complete. Please restart your terminal session or run 'source ~/.bashrc' to apply the changes."
+

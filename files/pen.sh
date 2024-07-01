@@ -72,7 +72,7 @@ case "$1" in
   create)
     ./../target/release/pen "$@"
     ;;
-  -h|--help)
+  -h|--help|"")
     print_help
     ;;
   *)
