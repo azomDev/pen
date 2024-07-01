@@ -23,7 +23,6 @@ cargo build --release
 mkdir ~/.pen
 cp target/release/pen ~/.pen/penCreateEnv
 cp files/pen.sh ~/.pen/
-echo '\n# pen' >> ~/.bashrc
 echo 'alias pen=". ~/.pen/pen.sh"' >> ~/.bashrc
 source ~/.bashrc
 cd ..
