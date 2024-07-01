@@ -14,6 +14,19 @@ For now, only linux with bash and the ~/.bashrc file are supported.
 ```
 curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | bash
 ```
+### Manual installation
+You will need cargo and something like gcc
+```
+git clone https://github.com/azomDev/pen.git
+cd pen
+cargo build --release
+mkdir ~/.pen
+cp target/release/pen ~/.pen/
+cp files/pen.sh ~/.pen/
+alias pen=". ~/.pen/pen.sh" >> ~/.bashrc
+source ~/.bashrc
+```
+
 ## Usage
 
 ### Commands
