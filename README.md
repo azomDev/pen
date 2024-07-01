@@ -16,8 +16,6 @@ curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | 
 ```
 ## Usage
 
-pen {activate|deactivate|create} [options]
-
 ### Commands
 
 - Activate Virtual Environment
