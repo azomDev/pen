@@ -29,3 +29,4 @@ else
 fi
 source $BASHRC
 echo "Installation complete."
+rm "tmp/install.sh"
