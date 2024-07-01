@@ -21,7 +21,7 @@ git clone https://github.com/azomDev/pen.git
 cd pen
 cargo build --release
 mkdir ~/.pen
-cp target/release/pen ~/.pen/
+cp target/release/pen ~/.pen/penCreateEnv
 cp files/pen.sh ~/.pen/
 echo 'alias pen=". ~/.pen/pen.sh"' >> ~/.bashrc
 source ~/.bashrc
