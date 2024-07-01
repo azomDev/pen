@@ -5,7 +5,6 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    println!("{:#?}", args);
     if args.len() != 3 || !args[2].starts_with("--pyversion=") {
         eprintln!("Usage: {} --pyversion=<PYVERSION>", args[0]);
         std::process::exit(1);
@@ -18,9 +17,9 @@ fn main() {
     let version_path = projects_dir.join(&version_dir_name);
 
     if version_path.exists() {
-        println!("Yes, the folder for Python version {} exists", pyversion);
+        println!("The folder for Python version {} already exists, no installing required.", pyversion);
     } else {
-        println!("No, the folder for Python version {} does not exist. Installing...", pyversion);
+        println!("The folder for Python version {} does not exist. Installing...", pyversion);
         if install_python_version(pyversion, &version_path) {
             println!("Successfully installed Python version {}", pyversion);
         } else {
