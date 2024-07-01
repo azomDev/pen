@@ -12,7 +12,7 @@ fn main() {
 
     let pyversion = &args[2][12..];
     let home_dir = env::var("HOME").expect("HOME environment variable is not set");
-    let projects_dir = Path::new(&home_dir).join("Projects/pen/pythonVersions");
+    let projects_dir = Path::new(&home_dir).join(".pen/pythonVersions");
     let version_dir_name = format!("python_{}", pyversion);
     let version_path = projects_dir.join(&version_dir_name);
 
