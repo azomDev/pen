@@ -65,7 +65,7 @@ case "$1" in
     deactivate_env
     ;;  
   create)
-    $HOME/.pen/pen "$@"
+    $HOME/.pen/penCreateEnv "$@"
     ;;
   -h|--help|"")
     print_help
