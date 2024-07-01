@@ -27,5 +27,5 @@ if ! grep -q "alias pen=" "$BASHRC"; then
 else
     echo "Alias for pen already exists in $BASHRC"
 fi
-source "$BASHRC"
+exec $SHELL
 echo "Installation complete."
