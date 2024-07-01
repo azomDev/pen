@@ -2,10 +2,21 @@
 
 # Define variables
 PEN_DIR="$HOME/.pen"
-PYTHON_VERSIONS_DIR="$PEN_DIR/pythonVersions"
 BASHRC="$HOME/.bashrc"
 PEN_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/pen.sh"
 PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/pen"
+
+# Check if the .pen directory exists, if yes, exit
+if [ -d "$PEN_DIR" ]; then
+    echo "Directory $PEN_DIR already exists. Exiting."
+    exit 1 # does this kill the terminal? if yes change
+fi
+
+# Check if .bashrc file exists, if no, exit
+if [ ! -f "$BASHRC" ]; then
+    echo "File $BASHRC does not exist. Exiting."
+    exit 1 # does this kill the terminal? if yes change
+fi
 
 # Create .pen directory in the home of the user
 mkdir -p "$PEN_DIR"
@@ -18,7 +29,7 @@ curl -L -o "$PEN_DIR/penCreateEnv" "$PEN_EXECUTABLE_URL"
 chmod +x "$PEN_DIR/penCreateEnv"
 
 # Create pythonVersions directory inside .pen
-mkdir -p "$PYTHON_VERSIONS_DIR"
+mkdir -p "$PEN_DIR/pythonVersions"
 
 # Add alias to the bashrc file
 if ! grep -q "alias pen=" "$BASHRC"; then
