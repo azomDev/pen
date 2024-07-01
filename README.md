@@ -66,6 +66,7 @@ pen deactivate
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on GitHub, even for the smallest bug or the smallest idea.
+If there is any issue you see that you might want to try doing, just let a comment on the issue and I will let it to you.
 
 ## License
 
