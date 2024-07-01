@@ -25,6 +25,8 @@ cp target/release/pen ~/.pen/
 cp files/pen.sh ~/.pen/
 alias pen=". ~/.pen/pen.sh" >> ~/.bashrc
 source ~/.bashrc
+cd ..
+rm -rf pen/
 ```
 
 ## Usage
