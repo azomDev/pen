@@ -30,7 +30,7 @@ curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | 
 
   `pen create --pyversion=VERSION`
 
-- Show the help message
+- Show Help Message
   
   `pen --help`, `pen -h` or `pen`
 
