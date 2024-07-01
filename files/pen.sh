@@ -56,11 +56,6 @@ invalid_command() {
   print_help
 }
 
-# If no arguments are passed, show help message
-if [ $# -eq 0 ]; then
-  print_help
-fi
-
 # Check the first argument passed to the script
 case "$1" in
   activate)
