@@ -10,7 +10,9 @@
 
 ## Installation
 
-TODO
+For now, only linux with bash and the ~/.bashrc file are supported.
+
+`curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | bash`
 
 ## Usage
 
