@@ -14,32 +14,27 @@ For now, only linux with bash and the ~/.bashrc file are supported.
 ```
 curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | bash
 ```
-
 ## Usage
 
-`pen {activate|deactivate|create} [options]`
+pen {activate|deactivate|create} [options]
 
 ### Commands
 
-- `activate`:
-  Activate the virtual environment.
+- Activate Virtual Environment
 
   `pen activate`
 
-- `deactivate`:
-  Deactivate the virtual environment.
+- Deactivate Virtual Environment
 
   `pen deactivate`
 
-- `create --pyversion=VERSION`:
-  Create a new virtual environment with the specified Python version.
+- Create Virtual Environment
 
-  `pen create --pyversion=3.11.9`
+  `pen create --pyversion=VERSION`
 
-### Options
-
-- `-h`, `--help`:
-  Show the help message.
+- Show the help message
+  
+  `pen --help`, `pen -h` or `pen`
 
 ## Example
 
