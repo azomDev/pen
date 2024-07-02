@@ -30,6 +30,7 @@ rm -rf pen/
 ```
 
 ## Usage
+OUTATED
 
 ### Commands
 
