@@ -6,6 +6,7 @@ mod utils;
 
 fn main() {
     let matches = Command::new("pen")
+        .name("pen")
         .version("0.1.0")
         .author("azomDev, azom.developer@gmail.com")
         .about("This tool helps with managing Python environments with different Python versions.")
