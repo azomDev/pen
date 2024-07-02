@@ -1,149 +1,112 @@
-use std::path::{Path, PathBuf};
-use std::process::Command as ProcessCommand;
-use std::fs;
-use std::env;
+use clap::{Arg, Command};
+use std::process;
+
+mod commands;
+mod utils;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 3 || !args[2].starts_with("--pyversion=") {
-        eprintln!("Usage: {} --pyversion=<PYVERSION>", args[0]);
-        std::process::exit(1);
-    }
+    let matches = Command::new("pen")
+        .version("0.1.0")
+        .author("azomDev, azom.developer@gmail.com")
+        .about("This tool helps with managing Python environments with different Python versions.")
+        .subcommand_required(true)
+        .arg_required_else_help(true)
+        .subcommand(Command::new("create")
+            .visible_alias("c")
+            .about("Create a new virtual environment with the specified Python version in the current directory")
+            .arg(Arg::new("pyversion")
+                .help("Specify the Python version (ex. pen create 3.11.9)")
+                .required(true)
+                .index(1)))
+        .subcommand(Command::new("install")
+            .visible_alias("i")
+            .about("Install a specified Python version")
+            .arg(Arg::new("pyversion")
+                .help("Specify the Python version (ex. pen install 3.11.9)")
+                .required(true)
+                .index(1)))
+        .subcommand(Command::new("delete")
+            .about("Delete the virtual environment in the current directory or delete a specific Python version")
+            .arg(Arg::new("pyversion")
+                .help("Specify the Python version to delete (to delete the virtual environement, run the command without an argument")
+                .required(false)
+                .index(1)))
+        .subcommand(Command::new("list")
+            .visible_alias("l")
+            .about("Lists the installed Python versions from pen"))
+        .subcommand(Command::new("uninstall")
+            .about("Completely uninstalls pen from the computer (does not include virtual environements)"))
+        .get_matches();
 
-    let pyversion = &args[2][12..];
-    let home_dir = env::var("HOME").expect("HOME environment variable is not set");
-    let projects_dir = Path::new(&home_dir).join(".pen/pythonVersions");
-    let version_dir_name = format!("python_{}", pyversion);
-    let version_path = projects_dir.join(&version_dir_name);
+        if !utils::does_pen_dir_exists() {
+            println!("Error: .pen directory does not exist in home directory, exiting.");
+            process::exit(1);
+        }
 
-    if version_path.exists() {
-        println!("The folder for Python version {} already exists, no installing required.", pyversion);
-    } else {
-        println!("The folder for Python version {} does not exist. Installing...", pyversion);
-        if install_python_version(pyversion, &version_path) {
-            println!("Successfully installed Python version {}", pyversion);
-        } else {
-            println!("Failed to install Python version {}", pyversion);
+        match matches.subcommand() {
+            Some(("create", sub_m)) => {
+                let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
+                println!("Installing Python version: {}", pyversion);
 
-            if version_path.exists() {
-                if let Err(e) = fs::remove_dir_all(&version_path) {
-                    println!("Failed to remove directory {}: {}", version_path.display(), e);
+                if utils::check_version_format(pyversion) {
+                    println!("Installing Python version: {}", pyversion);
+
+                    let version_path = utils::get_version_path(pyversion);
+
+                    commands::create_env::create_virtual_environment(pyversion, &version_path);
                 } else {
-                    println!("Removed directory {} after failed installation", version_path.display());
+                    println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
                 }
             }
-            std::process::exit(1);
+            Some(("install", sub_m)) => {
+                let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
+
+                if utils::check_version_format(pyversion) {
+                    println!("Installing Python version: {}", pyversion);
+
+                    let version_path = utils::get_version_path(pyversion);
+
+                    commands::install_python_version::install(pyversion, &version_path);
+                } else {
+                    println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
+                }
+            }
+            Some(("delete", sub_m)) => {
+                // todo add confirmation for both
+                if let Some(pyversion) = sub_m.get_one::<String>("pyversion") {
+                    if utils::check_version_format(pyversion) {
+                        println!("Deleting Python version: {}", pyversion);
+                        let version_path = utils::get_version_path(pyversion);
+                        commands::delete_python_version::delete_version(&version_path, pyversion)
+                    } else {
+                        println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
+                    }
+                } else {
+                    println!("Deleting the virtual environment in the current directory");
+                    commands::delete_env::delete_env();
+                }
+            }
+            Some(("list", _sub_m)) => {
+                println!("Listing installed Python versions:");
+                commands::list_python_versions::list();
+            }
+            Some(("uninstall", _sub_m)) => {
+                // todo add confirmation
+                println!("Not yet implemented");
+                // println!("Uninstalling pen...");
+
+                // let home_dir = env::var("HOME").expect("HOME environment variable is not set");
+                // let projects_dir = Path::new(&home_dir).join(".pen/pythonVersions");
+
+                // if let Err(e) = fs::remove_dir_all(&projects_dir) {
+                //     println!("Deletion of pen failed: {}", e);
+                // } else {
+                //     // todo remove the pen entry in things like .bashrc
+                //     println!("Deletion of pen successful");
+                // }
+            }
+            _ => {
+                eprintln!("Unknown command");
+            }
         }
-    }
-    create_virtual_environment(&version_path);
-}
-
-fn install_python_version(version: &str, path: &PathBuf) -> bool {
-    let url = format!("https://www.python.org/ftp/python/{}/Python-{}.tgz", version, version);
-    let tarball_path = format!("/tmp/Python-{}.tgz", version);
-    
-    // Create the directory if it doesn't exist
-    if let Err(e) = fs::create_dir_all(path) {
-        println!("Failed to create directory: {}", e);
-        return false;
-    }
-
-    // Convert relative path to absolute path
-    let absolute_path = fs::canonicalize(path).expect("Failed to get absolute path");
-
-    // Download the Python tarball
-    if ProcessCommand::new("curl")
-        .arg("-o")
-        .arg(&tarball_path)
-        .arg(&url)
-        .status()
-        .expect("Failed to execute curl")
-        .success() == false
-        {
-            println!("Failed to download Python version {}", version);
-            return false;
-        }
-
-    // Extract the tarball
-    if ProcessCommand::new("tar")
-        .arg("-xzf")
-        .arg(&tarball_path)
-        .arg("-C")
-        .arg("/tmp")
-        .status()
-        .expect("Failed to execute tar")
-        .success() == false
-        {
-            println!("Failed to extract Python version {}", version);
-            return false;
-        }
-
-    // Configure and install Python
-    let source_dir = format!("/tmp/Python-{}", version);
-    if ProcessCommand::new("./configure")
-        .current_dir(&source_dir)
-        .arg(format!("--prefix={}", absolute_path.to_str().unwrap()))
-        .status()
-        .expect("Failed to execute configure")
-        .success() == false
-        {
-            println!("Failed to configure Python version {}", version);
-            return false;
-        }
-    
-    if ProcessCommand::new("make")
-        .current_dir(&source_dir)
-        .status()
-        .expect("Failed to execute make")
-        .success() == false
-        {
-            println!("Failed to make Python version {}", version);
-            return false;
-        }
-    
-    if ProcessCommand::new("make")
-        .current_dir(&source_dir)
-        .arg("install")
-        .status()
-        .expect("Failed to execute make install")
-        .success() == false
-        {
-            println!("Failed to install Python version {}", version);
-            return false;
-        }
-
-    // Verify the installation
-    let python_bin = absolute_path.join("bin/python3");
-    if ProcessCommand::new(python_bin)
-        .arg("--version")
-        .status()
-        .expect("Failed to execute installed Python")
-        .success() == false
-        {
-            println!("Failed to verify Python version {}", version);
-            return false;
-        }
-
-    // Cleanup
-    fs::remove_file(tarball_path).expect("Failed to remove tarball");
-    fs::remove_dir_all(source_dir).expect("Failed to remove source directory");
-
-    true
-}
-
-fn create_virtual_environment(python_path: &PathBuf) {
-    let venv_path = PathBuf::from("./env");
-    let python_bin = python_path.join("bin/python3");
-
-    if ProcessCommand::new(python_bin)
-        .arg("-m")
-        .arg("venv")
-        .arg(&venv_path)
-        .status()
-        .expect("Failed to create virtual environment")
-        .success() {
-            println!("Virtual environment created at {}", venv_path.display());
-    } else {
-        println!("Failed to create virtual environment");
-    }
 }

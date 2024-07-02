@@ -9,13 +9,13 @@ PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/pen
 # Check if the .pen directory exists, if yes, exit
 if [ -d "$PEN_DIR" ]; then
     echo "Directory $PEN_DIR already exists. Exiting."
-    exit 1 # does this kill the terminal? if yes change
+    exit 1
 fi
 
 # Check if .bashrc file exists, if no, exit
 if [ ! -f "$BASHRC" ]; then
     echo "File $BASHRC does not exist. Exiting."
-    exit 1 # does this kill the terminal? if yes change
+    exit 1
 fi
 
 # Create .pen directory in the home of the user
