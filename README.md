@@ -33,22 +33,19 @@ rm -rf pen/
 OUTATED
 
 ### Commands
+Usage: pen <COMMAND>
 
-- Activate Virtual Environment
+Commands:
+  create     Create a new virtual environment with the specified Python version in the current directory [aliases: c]
+  install    Install a specified Python version [aliases: i]
+  delete     Delete the virtual environment in the current directory or delete a specific Python version
+  list       Lists the installed Python versions from pen [aliases: l]
+  uninstall  Completely uninstalls pen from the computer (does not include virtual environements)
+  help       Print this message or the help of the given subcommand(s)
 
-  `pen activate`
-
-- Deactivate Virtual Environment
-
-  `pen deactivate`
-
-- Create Virtual Environment
-
-  `pen create --pyversion=VERSION`
-
-- Show Help Message
-  
-  `pen --help`, `pen -h` or `pen`
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
 
 ## Example
 
