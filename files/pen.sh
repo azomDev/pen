@@ -33,6 +33,6 @@ case "$1" in
     deactivate_env
     ;;  
   *)
-    $HOME/.pen/penCreateEnv "$@"
+    $HOME/.pen/penOtherCommands "$@"
     ;;
 esac

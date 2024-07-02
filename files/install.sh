@@ -21,12 +21,12 @@ fi
 # Create .pen directory in the home of the user
 mkdir -p "$PEN_DIR"
 
-# Curl the pen.sh script and penCreateEnv executable from GitHub and put them in the .pen directory
+# Curl the pen.sh script and penOtherCommands executable from GitHub and put them in the .pen directory
 curl -o "$PEN_DIR/pen.sh" "$PEN_SCRIPT_URL"
-curl -L -o "$PEN_DIR/penCreateEnv" "$PEN_EXECUTABLE_URL"
+curl -L -o "$PEN_DIR/penOtherCommands" "$PEN_EXECUTABLE_URL"
 
-# Make the penCreateEnv executable
-chmod +x "$PEN_DIR/penCreateEnv"
+# Make the penOtherCommands executable
+chmod +x "$PEN_DIR/penOtherCommands"
 
 # Create pythonVersions directory inside .pen
 mkdir -p "$PEN_DIR/pythonVersions"
