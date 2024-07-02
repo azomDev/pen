@@ -37,6 +37,14 @@ fn main() {
             .about("Lists the installed Python versions from pen"))
         .subcommand(Command::new("uninstall")
             .about("Completely uninstalls pen from the computer (does not include virtual environements)"))
+        // activate and deactivate subcommands will never happen in the rust code, so this is used for doc and help messages
+        .subcommand(Command::new("activate")
+            .about("Activates the virtual environment in the current directory")
+            .alias("a"))
+            .subcommand(Command::new("deactivate")
+            .about("Deactivates the virtual environment")
+            .alias("d"))
+
         .get_matches();
 
         if !utils::does_pen_dir_exists() {
