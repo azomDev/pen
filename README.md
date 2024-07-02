@@ -30,39 +30,60 @@ rm -rf pen/
 ```
 
 ## Usage
-OUTATED
+pen \<COMMAND\>
 
 ### Commands
+- **create**: Create a new virtual environment with the specified Python version in the current directory
+  - **Aliases**: `c`
+- **install**: Install a specified Python version
+  - **Aliases**: `i`
+- **delete**: Delete the virtual environment in the current directory or delete a specific Python version
+- **list**: Lists the installed Python versions from pen
+  - **Aliases**: `l`
+- **uninstall**: Completely uninstalls pen from the computer (does not include virtual environments)
+- **help**: Print this message or the help of the given subcommand(s)
 
-- Activate Virtual Environment
+#### Options:
+- **-h, --help**: Print help
+- **-V, --version**: Print version
 
-  `pen activate`
 
-- Deactivate Virtual Environment
+### Example Usage
 
-  `pen deactivate`
-
-- Create Virtual Environment
-
-  `pen create --pyversion=VERSION`
-
-- Show Help Message
-  
-  `pen --help`, `pen -h` or `pen`
-
-## Example
-
-```sh
-# Create a virtual environment with Python version 3.11.9 in the current directory
-pen create --pyversion=3.11.9
-
-# Activate the virtual environment in the current directory
-pen activate
-
-# Deactivate the virtual environment in the current directory
-pen deactivate
+#### Creating a new virtual environment
+```
+pen create 3.9.1
 ```
 
+#### Installing a specific Python version
+```
+pen install 3.8.5
+```
+
+#### Deleting the virtual environment in the current directory
+```
+pen delete
+```
+
+#### Deleting a specific Python version
+```
+pen delete 3.8.5
+```
+
+#### Listing installed Python versions
+```
+pen list
+```
+
+#### Uninstalling pen completely
+```
+pen uninstall
+```
+
+#### Getting help for a specific command
+```
+pen help create
+```
 
 ## Contributing
 
