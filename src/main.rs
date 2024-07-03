@@ -62,7 +62,7 @@ fn main() {
 
                     let version_path = utils::get_version_path(pyversion);
 
-                    commands::create_env::create_virtual_environment(pyversion, &version_path);
+                    commands::create_env(pyversion, &version_path);
                 } else {
                     println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
                 }
@@ -75,44 +75,37 @@ fn main() {
 
                     let version_path = utils::get_version_path(pyversion);
 
-                    commands::install_python_version::install(pyversion, &version_path);
+                    commands::install_version(pyversion, &version_path);
                 } else {
                     println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
                 }
             }
             Some(("delete", sub_m)) => {
-                // todo add confirmation for both
                 if let Some(pyversion) = sub_m.get_one::<String>("pyversion") {
+                    // todo add confirmation
                     if utils::check_version_format(pyversion) {
                         println!("Deleting Python version: {}", pyversion);
                         let version_path = utils::get_version_path(pyversion);
-                        commands::delete_python_version::delete_version(&version_path, pyversion)
+                        commands::delete_version(&version_path, pyversion)
                     } else {
                         println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
                     }
                 } else {
+                    // todo add confirmation
                     println!("Deleting the virtual environment in the current directory");
-                    commands::delete_env::delete_env();
+                    commands::delete_env();
                 }
             }
             Some(("list", _sub_m)) => {
                 println!("Listing installed Python versions:");
-                commands::list_python_versions::list();
+                commands::list();
             }
             Some(("uninstall", _sub_m)) => {
                 // todo add confirmation
-                println!("Not yet implemented");
-                // println!("Uninstalling pen...");
+                // println!("Not yet implemented");
+                println!("Uninstalling pen...");
 
-                // let home_dir = env::var("HOME").expect("HOME environment variable is not set");
-                // let projects_dir = Path::new(&home_dir).join(".pen/pythonVersions");
-
-                // if let Err(e) = fs::remove_dir_all(&projects_dir) {
-                //     println!("Deletion of pen failed: {}", e);
-                // } else {
-                //     // todo remove the pen entry in things like .bashrc
-                //     println!("Deletion of pen successful");
-                // }
+                commands::uninstall();
             }
             _ => {
                 eprintln!("Unknown command");

@@ -2,8 +2,7 @@ use std::path::PathBuf;
 use std::process::Command as ProcessCommand;
 use std::fs;
 
-pub fn install(version: &str, path: &PathBuf) -> bool {
-    // todo remove the bool return by handling errors
+pub fn install_version(version: &str, path: &PathBuf) -> bool {
     if path.exists() {
         println!("The folder for Python version {} already exists, no installing required.", version);
         return true;
@@ -71,7 +70,7 @@ pub fn install(version: &str, path: &PathBuf) -> bool {
             println!("Failed to make Python version {}", version);
             return false;
         }
-    
+
     if ProcessCommand::new("make")
         .current_dir(&source_dir)
         .arg("install")
@@ -94,6 +93,8 @@ pub fn install(version: &str, path: &PathBuf) -> bool {
             println!("Failed to verify Python version {}", version);
             return false;
         }
+
+    println!("Finishing install");
 
     // Cleanup
     fs::remove_file(tarball_path).expect("Failed to remove tarball");
