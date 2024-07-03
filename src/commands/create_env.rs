@@ -1,12 +1,10 @@
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command as ProcessCommand;
-use std::path::Path;
 
 use super::install_python_version;
 
-pub fn create_env(version: &str, python_path: &PathBuf) {
-    let env_dir = Path::new("./env");
+pub fn create_env(version: &str, python_path: &PathBuf, env_dir: &PathBuf, tmp_dir: &PathBuf) {
     if env_dir.exists() && env_dir.is_dir() {
         println!("env directory already exists in current directory");
         return;
@@ -17,7 +15,7 @@ pub fn create_env(version: &str, python_path: &PathBuf) {
         return;
     }
 
-    let temp_venv_path = PathBuf::from("/tmp/env");
+    let temp_venv_path = tmp_dir.join("env");
     let python_bin = python_path.join("bin/python3");
 
     // Remove any existing temporary environment

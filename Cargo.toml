@@ -3,6 +3,20 @@ name = "pen"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "pen"
+path = "src/main.rs"
+
+[[bin]]
+name = "install"
+path = "src/server_side/install.rs"
+
+[[bin]]
+name = "update"
+path = "src/server_side/update.rs"
+
 [dependencies]
 clap = { version = "4.5.8", features = ["derive"] }
+dirs = "5.0.1"
 regex = "1.10.5"
+reqwest = { version = "0.12.5", features = ["blocking"] }

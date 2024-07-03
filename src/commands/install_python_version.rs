@@ -11,7 +11,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
 
     let url = format!("https://www.python.org/ftp/python/{}/Python-{}.tgz", version, version);
     let tarball_path = format!("/tmp/Python-{}.tgz", version);
-    
+
     // Create the directory if it doesn't exist
     if let Err(e) = fs::create_dir_all(path) {
         println!("Failed to create directory: {}", e);

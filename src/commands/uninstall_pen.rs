@@ -1,13 +1,10 @@
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 
-pub fn uninstall() {
-    let home_dir = std::env::var("HOME").expect("Failed to get HOME directory");
-    let pen_dir = Path::new(&home_dir).join(".pen");
-    let bashrc = Path::new(&home_dir).join(".bashrc");
+pub fn uninstall(pen_dir: &PathBuf, bashrc_file: &PathBuf) {
 
     // Remove .pen directory if it exists
-    if Path::new(&pen_dir).exists() {
+    if pen_dir.exists() {
         if let Err(e) = fs::remove_dir_all(&pen_dir) {
             eprintln!("Failed to remove directory {}: {}", pen_dir.display(), e);
             return;
@@ -18,11 +15,11 @@ pub fn uninstall() {
     }
 
     // Modify .bashrc to remove pen alias and comment
-    if Path::new(&bashrc).exists() {
-        let bashrc_content = match fs::read_to_string(&bashrc) {
+    if bashrc_file.exists() {
+        let bashrc_content = match fs::read_to_string(&bashrc_file) {
             Ok(content) => content,
             Err(e) => {
-                eprintln!("Failed to read file {}: {}", bashrc.display(), e);
+                eprintln!("Failed to read file {}: {}", bashrc_file.display(), e);
                 return;
             }
         };
@@ -40,16 +37,16 @@ pub fn uninstall() {
         }
 
         if pen_alias_found {
-            if let Err(e) = fs::write(&bashrc, new_bashrc_content.trim_end()) {
-                eprintln!("Failed to write to file {}: {}", bashrc.display(), e);
+            if let Err(e) = fs::write(&bashrc_file, new_bashrc_content.trim_end()) {
+                eprintln!("Failed to write to file {}: {}", bashrc_file.display(), e);
                 return;
             }
-            println!("Alias and comment removed from {}", bashrc.display());
+            println!("Alias and comment removed from {}", bashrc_file.display());
         } else {
-            println!("Alias and comment not found in {}", bashrc.display());
+            println!("Alias and comment not found in {}", bashrc_file.display());
         }
     } else {
-        println!("File {} does not exist.", bashrc.display());
+        println!("File {} does not exist.", bashrc_file.display());
     }
     
     println!("Uninstallation complete. Please restart your terminal session to apply the changes.");

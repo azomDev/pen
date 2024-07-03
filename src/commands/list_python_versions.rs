@@ -1,19 +1,8 @@
 use std::fs;
-use std::env;
-use std::path::Path;
+use std::path::PathBuf;
 
-pub fn list() {
-    let home_dir = match env::var("HOME") {
-        Ok(dir) => dir,
-        Err(e) => {
-            eprintln!("Error getting HOME environment variable: {}", e);
-            return;
-        }
-    };
-
-    let version_dir = Path::new(&home_dir).join(".pen/pythonVersions");
-
-    let entries = match fs::read_dir(&version_dir) {
+pub fn list(python_versions_dir: &PathBuf) {
+    let entries = match fs::read_dir(&python_versions_dir) {
         Ok(entries) => entries,
         Err(e) => {
             eprintln!("Error reading directory: {}", e);

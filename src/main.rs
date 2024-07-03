@@ -1,5 +1,8 @@
 use clap::{Arg, Command};
 use std::process;
+use dirs::home_dir;
+use std::path::PathBuf;
+use std::env::temp_dir;
 
 mod commands;
 mod utils;
@@ -54,6 +57,15 @@ fn main() {
             process::exit(1);
         }
 
+        let pen_dir = home_dir().expect("Failed to get home directory").join(".pen");
+        let tmp_dir = temp_dir();
+        let python_versions_dir = pen_dir.join("pythonVersions");
+        let relative_env_dir = PathBuf::from("./env");
+        let bashrc_file = home_dir().expect("Failed to get home directory").join(".bashrc");
+        let update_script_url = "https://raw.githubusercontent.com/azomDev/pen/main/files/update.sh";
+
+
+
         match matches.subcommand() {
             Some(("create", sub_m)) => {
                 let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
@@ -62,9 +74,9 @@ fn main() {
                 if utils::check_version_format(pyversion) {
                     println!("Installing Python version: {}", pyversion);
 
-                    let version_path = utils::get_version_path(pyversion);
+                    let version_path = utils::get_version_path(pyversion, &python_versions_dir);
 
-                    commands::create_env(pyversion, &version_path);
+                    commands::create_env(pyversion, &version_path, &relative_env_dir, &tmp_dir);
                 } else {
                     println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
                 }
@@ -75,7 +87,7 @@ fn main() {
                 if utils::check_version_format(pyversion) {
                     println!("Installing Python version: {}", pyversion);
 
-                    let version_path = utils::get_version_path(pyversion);
+                    let version_path = utils::get_version_path(pyversion, &python_versions_dir);
 
                     commands::install_version(pyversion, &version_path);
                 } else {
@@ -87,8 +99,8 @@ fn main() {
                     // todo add confirmation
                     if utils::check_version_format(pyversion) {
                         println!("Deleting Python version: {}", pyversion);
-                        let version_path = utils::get_version_path(pyversion);
-                        commands::delete_version(&version_path, pyversion)
+                        let version_path = utils::get_version_path(pyversion, &python_versions_dir);
+                        commands::delete_version(&version_path, pyversion);
                     } else {
                         println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
                     }
@@ -100,18 +112,16 @@ fn main() {
             }
             Some(("list", _sub_m)) => {
                 println!("Listing installed Python versions:");
-                commands::list();
+                commands::list(&python_versions_dir);
             }
             Some(("uninstall", _sub_m)) => {
                 // todo add confirmation
                 println!("Uninstalling pen...");
-
-                commands::uninstall();
+                commands::uninstall(&pen_dir, &bashrc_file);
             }
             Some(("update", _sub_m)) => {
-                // todo add confirmation
                 println!("Updating pen");
-                commands::update();
+                commands::update(&tmp_dir, update_script_url);
             }
             _ => {
                 eprintln!("Unknown command");
