@@ -33,14 +33,14 @@ mkdir -p "$TEMP_DIR" || log_error_and_exit "Failed to create temporary directory
 
 # Download the new files to the temporary directory
 curl -o "$TEMP_DIR/pen.sh" "$PEN_SCRIPT_URL" || log_error_and_exit "Failed to download pen.sh."
-curl -L -o "$TEMP_DIR/penOtherCommands" "$PEN_EXECUTABLE_URL" || log_error_and_exit "Failed to download penOtherCommands."
+curl -L -o "$TEMP_DIR/core" "$PEN_EXECUTABLE_URL" || log_error_and_exit "Failed to download core."
 
-# Make the penOtherCommands executable
-chmod +x "$TEMP_DIR/penOtherCommands" || log_error_and_exit "Failed to make penOtherCommands executable."
+# Make the core executable
+chmod +x "$TEMP_DIR/core" || log_error_and_exit "Failed to make core executable."
 
 # Move the new files to the .pen directory
 mv "$TEMP_DIR/pen.sh" "$PEN_DIR/pen.sh" || log_error_and_exit "Failed to move pen.sh."
-mv "$TEMP_DIR/penOtherCommands" "$PEN_DIR/penOtherCommands" || log_error_and_exit "Failed to move penOtherCommands."
+mv "$TEMP_DIR/core" "$PEN_DIR/core" || log_error_and_exit "Failed to move core."
 
 # Update the local version file
 echo "$ONLINE_VERSION" > "$LOCAL_VERSION_FILE" || log_error_and_exit "Failed to update version file."
