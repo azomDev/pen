@@ -2,15 +2,20 @@
 
 # Function to activate the virtual environment
 activate_env() {
+  if [ ! -d "./env" ]; then
+    echo "The ./env directory is missing, which means the virtual environment is not present"
+    return
+  fi
+
   if [ -f "./env/bin/activate" ]; then
     source ./env/bin/activate
     if [[ "$VIRTUAL_ENV" != "" ]]; then
-      echo "Virtual environment activated."
+      echo "Virtual environment activated"
     else
-      echo "Failed to activate virtual environment."
+      echo "Failed to activate virtual environment"
     fi
   else
-    echo "Virtual environment not found in ./env/bin. Please ensure the virtual environment exists."
+    echo "Virtual environment not found in ./env/bin"
   fi
 }
 
@@ -18,9 +23,9 @@ activate_env() {
 deactivate_env() {
   if [[ -n "$VIRTUAL_ENV" ]]; then
     deactivate
-    echo "Virtual environment deactivated."
+    echo "Virtual environment deactivated"
   else
-    echo "No virtual environment is currently active."
+    echo "No virtual environment is currently active"
   fi
 }
 
