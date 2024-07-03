@@ -6,6 +6,7 @@ use dirs::home_dir;
 use reqwest::blocking::Client;
 use reqwest::header::USER_AGENT;
 use std::env::temp_dir;
+use std::os::unix::fs::PermissionsExt;
 
 fn main() -> io::Result<()> {
     let pen_dir = home_dir().expect("Failed to get home directory").join(".pen");
@@ -28,13 +29,21 @@ fn main() -> io::Result<()> {
     fs::create_dir_all(&python_versions_dir)?;
 
     // Download and move files to the appropriate directory
-    if download_file(&pen_script_url, &tmp_dir.join(pen_script_name))? &&
-       download_file(&version_txt_url, &tmp_dir.join(version_txt_name))? &&
-       download_file(&pen_executable_url, &tmp_dir.join(pen_executable_name))? {
+    if download_file(&pen_script_url, &tmp_dir.join(&pen_script_name))? &&
+       download_file(&version_txt_url, &tmp_dir.join(&version_txt_name))? &&
+       download_file(&pen_executable_url, &tmp_dir.join(&pen_executable_name))? {
 
-        fs::rename(tmp_dir.join(pen_script_name), pen_dir.join(pen_script_name))?;
-        fs::rename(tmp_dir.join(version_txt_name), pen_dir.join(version_txt_name))?;
-        fs::rename(tmp_dir.join(pen_executable_name), pen_dir.join(pen_executable_name))?;
+        move_file(&tmp_dir.join(&pen_script_name), &pen_dir.join(&pen_script_name))?;
+        move_file(&tmp_dir.join(&version_txt_name), &pen_dir.join(&version_txt_name))?;
+        move_file(&tmp_dir.join(&pen_executable_name), &pen_dir.join(&pen_executable_name))?;
+
+        // Set executable permissions on Linux
+        #[cfg(target_os = "linux")]
+        {
+            fs::set_permissions(&pen_dir.join(&pen_script_name), fs::Permissions::from_mode(0o755))?;
+            fs::set_permissions(&pen_dir.join(&pen_executable_name), fs::Permissions::from_mode(0o755))?;
+        }
+
     } else {
         eprintln!("Failed to download one or more files");
         return Err(io::Error::new(io::ErrorKind::Other, "Download failed"));
@@ -42,6 +51,12 @@ fn main() -> io::Result<()> {
 
     println!("Setup completed successfully.");
 
+    Ok(())
+}
+
+fn move_file(src: &PathBuf, dst: &PathBuf) -> io::Result<()> {
+    fs::copy(src, dst)?;
+    fs::remove_file(src)?;
     Ok(())
 }
 
@@ -60,12 +75,13 @@ fn add_alias(pen_dir: &PathBuf) -> io::Result<()> {
         } else {
             home_dir().expect("Failed to get home directory").join(".bashrc")
         };
-        let alias_string = format!(r#"\n# pen\nalias pen=". $HOME/.pen/main.sh""#);
-        fs::OpenOptions::new().create(true).append(true).open(shell_profile)?.write_all(alias_string.as_bytes())?;
+        let alias_string = format!(r#"\n\n# pen\nalias pen=". $HOME/.pen/main.sh""#);
+        fs::OpenOptions::new().create(true).append(true).open(shell_profile)?.write_all(alias_string.replace(r"\n", "\n").as_bytes())?;
     }
 
     Ok(())
 }
+
 
 fn download_file(url: &str, file_path: &PathBuf) -> io::Result<bool> {
     let client = Client::new();
@@ -85,7 +101,6 @@ fn download_file(url: &str, file_path: &PathBuf) -> io::Result<bool> {
         Ok(false)
     }
 }
-
 
 fn get_os_specific_details() -> (&'static str, &'static str, &'static str, &'static str) {
     #[cfg(target_os = "windows")]
