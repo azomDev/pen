@@ -14,7 +14,7 @@ TESTING IN PROGRESS. DO NOT TRY TO INSTALL IN ANY WAY WHILE THIS TEXT IS PRESENT
 
 For now, only linux with bash and the ~/.bashrc file are supported.
 ```
-curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/linux/install.sh | bash
 ```
 ### Manual installation
 You will need cargo
