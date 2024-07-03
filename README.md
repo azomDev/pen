@@ -16,6 +16,7 @@ curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/install.sh | 
 ```
 ### Manual installation
 You will need cargo
+OUDATED
 ```
 git clone https://github.com/azomDev/pen.git
 cd pen
