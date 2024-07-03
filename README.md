@@ -2,6 +2,8 @@
 
 **pen** is an easy-to-use tool for effortlessly managing and switching between virtual environments with specific Python versions.
 
+TESTING IN PROGRESS. DO NOT TRY TO INSTALL IN ANY WAY WHILE THIS TEXT IS PRESENT.
+
 ## Features
 
 - Create virtual environments with specific Python versions.
