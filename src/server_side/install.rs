@@ -26,12 +26,13 @@ fn main() -> io::Result<()> {
     add_alias(&pen_dir)?;
 
     // Create the necessary directories
-    fs::create_dir_all(&python_versions_dir)?;
-
+    
     // Download and move files to the appropriate directory
     if download_file(&pen_script_url, &tmp_dir.join(&pen_script_name))? &&
        download_file(&version_txt_url, &tmp_dir.join(&version_txt_name))? &&
        download_file(&pen_executable_url, &tmp_dir.join(&pen_executable_name))? {
+
+        fs::create_dir_all(&python_versions_dir)?;
 
         move_file(&tmp_dir.join(&pen_script_name), &pen_dir.join(&pen_script_name))?;
         move_file(&tmp_dir.join(&version_txt_name), &pen_dir.join(&version_txt_name))?;
