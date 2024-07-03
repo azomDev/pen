@@ -35,6 +35,8 @@ fn main() {
         .subcommand(Command::new("list")
             .visible_alias("l")
             .about("Lists the installed Python versions from pen"))
+        .subcommand(Command::new("update")
+            .about("Updates pen to the latest version, if available"))
         .subcommand(Command::new("uninstall")
             .about("Completely uninstalls pen from the computer (does not include virtual environements)"))
         // activate and deactivate subcommands will never happen in the rust code, so this is used for doc and help messages
@@ -102,10 +104,14 @@ fn main() {
             }
             Some(("uninstall", _sub_m)) => {
                 // todo add confirmation
-                // println!("Not yet implemented");
                 println!("Uninstalling pen...");
 
                 commands::uninstall();
+            }
+            Some(("update", _sub_m)) => {
+                // todo add confirmation
+                println!("Updating pen");
+                commands::update();
             }
             _ => {
                 eprintln!("Unknown command");

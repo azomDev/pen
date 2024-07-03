@@ -4,6 +4,8 @@
 PEN_DIR="$HOME/.pen"
 BASHRC="$HOME/.bashrc"
 PEN_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/pen.sh"
+UPDATER_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/updater.sh"
+VERSION_TXT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/version.txt"
 PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/pen"
 
 # Check if the .pen directory exists, if yes, exit
@@ -23,6 +25,8 @@ mkdir -p "$PEN_DIR"
 
 # Curl the pen.sh script and penOtherCommands executable from GitHub and put them in the .pen directory
 curl -o "$PEN_DIR/pen.sh" "$PEN_SCRIPT_URL"
+curl -o "$PEN_DIR/updater.sh" "$UPDATER_SCRIPT_URL"
+curl -o "$PEN_DIR/version.txt" "$VERSION_TXT_URL"
 curl -L -o "$PEN_DIR/penOtherCommands" "$PEN_EXECUTABLE_URL"
 
 # Make the penOtherCommands executable
