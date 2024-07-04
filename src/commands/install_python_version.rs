@@ -31,6 +31,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
         .success() == false
         {
             println!("Failed to download Python version {}", version);
+            fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
             return false;
         }
 
@@ -45,6 +46,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
         .success() == false
         {
             println!("Failed to extract Python version {}", version);
+            fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
             return false;
         }
 
@@ -58,6 +60,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
         .success() == false
         {
             println!("Failed to configure Python version {}", version);
+            fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
             return false;
         }
     
@@ -68,6 +71,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
         .success() == false
         {
             println!("Failed to make Python version {}", version);
+            fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
             return false;
         }
 
@@ -79,6 +83,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
         .success() == false
         {
             println!("Failed to install Python version {}", version);
+            fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
             return false;
         }
 
@@ -91,6 +96,7 @@ pub fn install_version(version: &str, path: &PathBuf) -> bool {
         .success() == false
         {
             println!("Failed to verify Python version {}", version);
+            fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
             return false;
         }
 
