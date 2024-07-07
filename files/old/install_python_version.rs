@@ -7,100 +7,102 @@ use std::path::PathBuf;
 use std::process::Command as ProcessCommand;
 
 pub fn install_version(version: &str, path: &PathBuf, tmp_dir: &PathBuf) -> bool {
-    #[cfg(target_os = "linux")]
-    unix_installer();
-    #[cfg(target_os = "macos")]
-    unix_installer();
-    #[cfg(target_os = "windows")]
-    println!("This feature is unavailable on Windows.");
-
     if path.exists() {
         println!(
-            "The directory for Python version {} already exists, no installing required.",
+            "The folder for Python version {} already exists, no installing required.",
             version
         );
         return true;
     }
     println!(
-        "The directory for Python version {} does not exist. Installing...",
+        "The folder for Python version {} does not exist. Installing...",
         version
     );
-
-    ////
-    let temp_extract_path = tmp_dir.join("temp_python_extract");
-    let temp_python_version_dir = tmp_dir.join("temp_python_version_download");
-    let temp_tarball_path = tmp_dir.join("temp_tarball.tgz");
-    ////
 
     let url = format!(
         "https://www.python.org/ftp/python/{}/Python-{}.tgz",
         version, version
     );
-    // let tarball_path = format!("Python-{}.tgz", version);
-    // let tarball_file = tmp_dir.join(PathBuf::from(&tarball_path));
+    let tarball_path = format!("Python-{}.tgz", version);
+    let tarball_file = tmp_dir.join(PathBuf::from(&tarball_path));
+    println!("{}", tmp_dir.display());
+    println!("{}", tarball_file.display());
 
     // Create the directory if it doesn't exist
-    // todo we can do this step at the end before renaming
-    // if let Err(e) = fs::create_dir_all(path) {
-    //     println!("Failed to create directory: {}", e);
-    //     return false;
-    // }
-
-    // Convert relative path to absolute path
-    // let absolute_path = fs::canonicalize(path).expect("Failed to get absolute path");
-
-    // Download the Python tarball
-    if !download_file(&url, &temp_tarball_path) {
-        eprintln!("Failed to download Python version {}", version);
+    if let Err(e) = fs::create_dir_all(path) {
+        println!("Failed to create directory: {}", e);
         return false;
     }
+
+    // Convert relative path to absolute path
+    let absolute_path = fs::canonicalize(path).expect("Failed to get absolute path");
+
+    // Download the Python tarball
+    if !download_file(&url, &tarball_file) {
+        eprintln!("Failed to download Python version {}", version);
+        fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
+        return false;
+    }
+    // if ProcessCommand::new("curl")
+    //     .arg("-o")
+    //     .arg(&tarball_path)
+    //     .arg(&url)
+    //     .status()
+    //     .expect("Failed to execute curl")
+    //     .success()
+    //     == false
+    // {
+    //     println!("Failed to download Python version {}", version);
+    //     fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
+    //     return false;
+    // }
 
     // Extract the tarball
     if ProcessCommand::new("tar")
         .arg("-xzf")
-        .arg(&temp_tarball_path)
+        .arg(&tarball_file)
         .arg("-C")
-        .arg(&temp_extract_path)
+        .arg(tmp_dir)
         .status()
         .expect("Failed to execute tar")
         .success()
         == false
     {
         println!("Failed to extract Python version {}", version);
+        fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
         return false;
     }
 
     // Configure and install Python
-    // let source_name = format!("Python-{}", version);
-    // let source_dir = tmp_dir.join(PathBuf::from(source_name));
+    let source_name = format!("Python-{}", version);
+    let source_dir = tmp_dir.join(PathBuf::from(source_name));
     if ProcessCommand::new("./configure")
-        .current_dir(&temp_extract_path)
-        .arg(format!(
-            "--prefix={}",
-            temp_python_version_dir.to_str().unwrap()
-        ))
+        .current_dir(&source_dir)
+        .arg(format!("--prefix={}", absolute_path.to_str().unwrap()))
         .status()
         .expect("Failed to execute configure")
         .success()
         == false
     {
         println!("Failed to configure Python version {}", version);
+        fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
         return false;
     }
 
     if ProcessCommand::new("make")
-        .current_dir(&temp_extract_path)
+        .current_dir(&source_dir)
         .status()
         .expect("Failed to execute make")
         .success()
         == false
     {
         println!("Failed to make Python version {}", version);
+        fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
         return false;
     }
 
     if ProcessCommand::new("make")
-        .current_dir(&temp_extract_path)
+        .current_dir(&source_dir)
         .arg("install")
         .status()
         .expect("Failed to execute make install")
@@ -108,6 +110,7 @@ pub fn install_version(version: &str, path: &PathBuf, tmp_dir: &PathBuf) -> bool
         == false
     {
         println!("Failed to install Python version {}", version);
+        fs::remove_dir_all(path).expect("Failed to cleanup partially installed directory");
         return false;
     }
 
@@ -134,9 +137,7 @@ pub fn install_version(version: &str, path: &PathBuf, tmp_dir: &PathBuf) -> bool
     true
 }
 
-fn unix_installer() {}
-
-fn windows_installer() {}
+fn linux_python_install(path: &PathBuf, tmp_dir: &PathBuf) {}
 
 fn download_file(url: &str, file_path: &PathBuf) -> bool {
     let client = match Client::new()

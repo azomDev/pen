@@ -1,16 +1,16 @@
+use reqwest::blocking::Client;
+use reqwest::header::USER_AGENT;
 use std::fs::File;
 use std::io::copy;
 use std::path::PathBuf;
 use std::process::Command;
-use reqwest::blocking::Client;
-use reqwest::header::USER_AGENT;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
 pub fn update(temp_dir: &PathBuf, update_script_url: &str) {
     let temp_file_path = temp_dir.join("update_script");
-    
+
     if download_file(update_script_url, &temp_file_path) {
         if !run_update_script(&temp_file_path) {
             eprintln!("Error: Failed to execute the update script");
@@ -24,7 +24,11 @@ pub fn update(temp_dir: &PathBuf, update_script_url: &str) {
 }
 
 fn download_file(url: &str, file_path: &PathBuf) -> bool {
-    let client = match Client::new().get(url).header(USER_AGENT, "Rust reqwest").send() {
+    let client = match Client::new()
+        .get(url)
+        .header(USER_AGENT, "Rust reqwest")
+        .send()
+    {
         Ok(response) => match response.error_for_status() {
             Ok(valid_response) => valid_response,
             Err(_) => return false,
@@ -66,6 +70,7 @@ fn run_update_script(file_path: &PathBuf) -> bool {
         };
 
         let mut perms = perms;
+        #[cfg(unix)]
         perms.set_mode(0o755);
 
         if std::fs::set_permissions(file_path, perms).is_err() {
@@ -80,6 +85,6 @@ fn run_update_script(file_path: &PathBuf) -> bool {
             return false;
         }
     }
-    
+
     true
 }

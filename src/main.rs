@@ -1,8 +1,6 @@
 use clap::{Arg, Command};
 use std::process;
 use dirs::home_dir;
-use std::path::PathBuf;
-use std::env::temp_dir;
 
 mod commands;
 mod utils;
@@ -68,79 +66,93 @@ fn main() {
 
         .get_matches();
 
-        if !utils::does_pen_dir_exists() {
-            println!("Error: .pen directory does not exist in home directory, exiting.");
-            process::exit(1);
-        }
+    
+    let home_dir = home_dir().expect("Failed to get home directory");
+    let pen_dir = home_dir.join(".pen");
 
-        let pen_dir = home_dir().expect("Failed to get home directory").join(".pen");
-        let tmp_dir = temp_dir();
-        let python_versions_dir = pen_dir.join("pythonVersions");
-        let relative_env_dir = PathBuf::from("./env");
-        let bashrc_file = home_dir().expect("Failed to get home directory").join(".bashrc");
-        let update_script_url = "https://raw.githubusercontent.com/azomDev/pen/main/files/update.sh";
+    if !pen_dir.exists() || !pen_dir.is_dir() {
+        eprintln!("Error: {} directory does not exist", pen_dir.display()); 
+        process::exit(1);
+    }
 
+    let tmp_dir = pen_dir.join("temp");
+    let python_versions_dir = pen_dir.join("pythonVersions");
+    
+    std::fs::remove_dir_all(&tmp_dir).expect("Failed to remove temp directory");
+    std::fs::create_dir(&tmp_dir).expect("Failed to create temp directory");
 
+    if !python_versions_dir.exists() || !python_versions_dir.is_dir() {
+        eprintln!("Weird, the directory {} does not exist. Creating it...", python_versions_dir.display());
+        std::fs::create_dir(&tmp_dir).expect(&format!("Failed to create {}", tmp_dir.display()));
+    }
 
-        match matches.subcommand() {
-            Some(("create", sub_m)) => {
-                let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
+    let bashrc_file = home_dir.join(".bashrc");
+    let update_script_url = "https://raw.githubusercontent.com/azomDev/pen/main/files/update.sh";
+
+    let env_dir_name = "env";
+
+    match matches.subcommand() {
+        Some(("create", sub_m)) => {
+            let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
+            println!("Installing Python version: {}", pyversion);
+
+            if utils::check_version_format(pyversion) {
                 println!("Installing Python version: {}", pyversion);
 
-                if utils::check_version_format(pyversion) {
-                    println!("Installing Python version: {}", pyversion);
+                let version_path = utils::get_version_path(pyversion, &python_versions_dir);
 
-                    let version_path = utils::get_version_path(pyversion, &python_versions_dir);
-
-                    commands::create_env(pyversion, &version_path, &relative_env_dir, &tmp_dir);
-                } else {
-                    println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
-                }
-            }
-            Some(("install", sub_m)) => {
-                let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
-
-                if utils::check_version_format(pyversion) {
-                    println!("Installing Python version: {}", pyversion);
-
-                    let version_path = utils::get_version_path(pyversion, &python_versions_dir);
-
-                    commands::install_version(pyversion, &version_path);
-                } else {
-                    println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
-                }
-            }
-            Some(("delete", sub_m)) => {
-                if let Some(pyversion) = sub_m.get_one::<String>("pyversion") {
-                    // todo add confirmation
-                    if utils::check_version_format(pyversion) {
-                        println!("Deleting Python version: {}", pyversion);
-                        let version_path = utils::get_version_path(pyversion, &python_versions_dir);
-                        commands::delete_version(&version_path, pyversion);
-                    } else {
-                        println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
-                    }
-                } else {
-                    // todo add confirmation
-                    println!("Deleting the virtual environment in the current directory");
-                    commands::delete_env();
-                }
-            }
-            Some(("list", _sub_m)) => {
-                println!("Listing installed Python versions:");
-                commands::list(&python_versions_dir);
-            }
-            Some(("uninstall", _sub_m)) => {
-                // todo add confirmation
-                println!("Uninstalling pen...");
-                commands::uninstall(&pen_dir, &bashrc_file);
-            }
-            Some(("update", _sub_m)) => {
-                println!("Updating pen");
-                commands::update(&tmp_dir, update_script_url);
-            }
-            _ => {
-                eprintln!("Unknown command");
+                commands::create_env(pyversion, &version_path, &tmp_dir, &env_dir_name);
+            } else {
+                println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
             }
         }
+        Some(("install", sub_m)) => {
+            // todo atomic
+            let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
+
+            if utils::check_version_format(pyversion) {
+                println!("Installing Python version: {}", pyversion);
+
+                let version_path = utils::get_version_path(pyversion, &python_versions_dir);
+
+                commands::install_version(pyversion, &version_path, &tmp_dir);
+            } else {
+                println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
+            }
+        }
+        Some(("delete", sub_m)) => {
+            if let Some(pyversion) = sub_m.get_one::<String>("pyversion") {
+                // todo add confirmation
+                if utils::check_version_format(&pyversion) {
+                    println!("Deleting Python version: {}", &pyversion);
+                    let version_path = utils::get_version_path(pyversion, &python_versions_dir);
+                    commands::delete_version(&version_path, &pyversion, &tmp_dir);
+                } else {
+                    println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
+                }
+            } else {
+                // todo add confirmation
+                println!("Deleting the virtual environment in the current directory");
+                commands::delete_env(&env_dir_name, &tmp_dir);
+            }
+        }
+        Some(("list", _sub_m)) => {
+            println!("Listing installed Python versions:");
+            commands::list(&python_versions_dir);
+        }
+        Some(("uninstall", _sub_m)) => {
+            // todo atomic
+            // todo add confirmation
+            println!("Uninstalling pen...");
+            commands::uninstall(&pen_dir, &bashrc_file);
+        }
+        Some(("update", _sub_m)) => {
+            // todo atomic
+            println!("Updating pen");
+            commands::update(&tmp_dir, update_script_url);
+        }
+        _ => {
+            eprintln!("Unknown command");
+        }
+    }
 }
