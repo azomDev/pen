@@ -12,22 +12,16 @@ Pen is still in alpha, so be careful when using it.
 
 ## Installation
 
-For now, only linux with bash and the ~/.bashrc file are supported.
-```
-curl -sSL https://raw.githubusercontent.com/azomDev/pen/main/files/linux/install.sh | bash
-```
 ### Manual installation
 You will need cargo
-OUDATED
 ```
 git clone https://github.com/azomDev/pen.git
 cd pen
 cargo build --release
 mkdir ~/.pen
-cp target/release/pen ~/.pen/penOtherCommands
+cp target/release/pen ~/.pen/core
 cp files/pen.sh ~/.pen/
-echo 'alias pen=". ~/.pen/pen.sh"' >> ~/.bashrc
-source ~/.bashrc
+sudo ln -s ~/.pen/pen.sh /usr/local/bin/pen
 cd ..
 rm -rf pen/
 ```
