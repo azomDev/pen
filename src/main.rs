@@ -1,6 +1,9 @@
+#[macro_use]
+extern crate lazy_static;
+
 use clap::{Arg, Command};
-use std::process;
-use dirs::home_dir;
+use std::{fs, path::PathBuf, process};
+// use dirs::home_dir;
 
 mod commands;
 mod utils;
@@ -9,10 +12,42 @@ mod utils;
 // line 1059
 // spec_vals.push(format!("[aliases: {all_als}]"));
 
+pub static ENV_DIR_NAME: &str = "env";
+
+lazy_static! {
+    // let update_script_url = "https://raw.githubusercontent.com/azomDev/pen/main/files/update.sh";
+    pub static ref HOME_DIR: PathBuf = dirs::home_dir().expect("Failed to get home directory");
+    pub static ref PEN_DIR: PathBuf = {
+        let dir = HOME_DIR.join(".pen");
+        if !dir.exists() || !dir.is_dir() {
+            eprintln!("Error: {} directory does not exist", dir.display());
+            process::exit(1);
+        }
+        return dir;
+    };
+    pub static ref TMP_DIR: PathBuf = {
+        let dir = PEN_DIR.join("temp");
+        let _ =  fs::remove_dir_all(&dir).is_err();
+        fs::create_dir(&dir).expect("Failed to create temp directory");
+        return dir;
+    };
+    pub static ref PYTHON_VERSIONS_DIR: PathBuf = {
+        let dir = PEN_DIR.join("python_versions");
+        if !dir.exists() || !dir.is_dir() {
+            eprintln!("Weird, the directory {} does not exist. Creating it...", dir.display());
+            fs::create_dir(&dir).expect(&format!("Failed to create {}", dir.display()));
+        }
+        return dir;
+    };
+    pub static ref PYTHON_VERSION_INFO_DIR: PathBuf = PEN_DIR.join("python_version_info");
+}
+
+// todo pen create with no version means the globally installed version
+
 fn main() {
     let matches = Command::new("pen")
         .bin_name("pen")
-        .version("0.1.0")
+        .version("0.2.0")
         .about("pen is a tool for managing Python environments with different Python versions.")
         .subcommand_required(true)
         .arg_required_else_help(true)
@@ -20,7 +55,7 @@ fn main() {
         .subcommand(Command::new("create")
             .visible_alias("c")
             .styles(clap::builder::styling::Styles::styled()
-            .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD)
+            .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD) // todo finish this and put it on the rest
         )
             .about("Create a virtual environment with a Python version")
             .long_about("Create a new virtual environment with the specified Python version in the current directory")
@@ -47,15 +82,15 @@ fn main() {
                 .help("Specify the Python version to delete (to delete the virtual environement, run the command without an argument")
                 .required(false)
                 .index(1)))
-        
+
         // activate and deactivate subcommands will never happen in the rust code, so this is used for doc and help messages
         .subcommand(Command::new("activate")
             .about("Activate the virtual environment")
             .long_about("Activate the virtual environment in the current directory")
-            .alias("a"))
+            .visible_alias("a"))
         .subcommand(Command::new("deactivate")
             .about("Deactivate the virtual environment")
-            .alias("d"))
+            .visible_alias("d"))
 
         .subcommand(Command::new("update")
             .about("Update pen")
@@ -66,90 +101,56 @@ fn main() {
 
         .get_matches();
 
-    
-    let home_dir = home_dir().expect("Failed to get home directory");
-    let pen_dir = home_dir.join(".pen");
-
-    if !pen_dir.exists() || !pen_dir.is_dir() {
-        eprintln!("Error: {} directory does not exist", pen_dir.display()); 
-        process::exit(1);
-    }
-
-    let tmp_dir = pen_dir.join("temp");
-    let python_versions_dir = pen_dir.join("pythonVersions");
-    
-    std::fs::remove_dir_all(&tmp_dir).expect("Failed to remove temp directory");
-    std::fs::create_dir(&tmp_dir).expect("Failed to create temp directory");
-
-    if !python_versions_dir.exists() || !python_versions_dir.is_dir() {
-        eprintln!("Weird, the directory {} does not exist. Creating it...", python_versions_dir.display());
-        std::fs::create_dir(&tmp_dir).expect(&format!("Failed to create {}", tmp_dir.display()));
-    }
-
-    let bashrc_file = home_dir.join(".bashrc");
-    let update_script_url = "https://raw.githubusercontent.com/azomDev/pen/main/files/update.sh";
-
-    let env_dir_name = "env";
-
     match matches.subcommand() {
         Some(("create", sub_m)) => {
             let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
-            println!("Installing Python version: {}", pyversion);
-
-            if utils::check_version_format(pyversion) {
-                println!("Installing Python version: {}", pyversion);
-
-                let version_path = utils::get_version_path(pyversion, &python_versions_dir);
-
-                commands::create_env(pyversion, &version_path, &tmp_dir, &env_dir_name);
-            } else {
-                println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
-            }
+            commands::create_env(&pyversion);
         }
         Some(("install", sub_m)) => {
-            // todo atomic
             let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
-
-            if utils::check_version_format(pyversion) {
-                println!("Installing Python version: {}", pyversion);
-
-                let version_path = utils::get_version_path(pyversion, &python_versions_dir);
-
-                commands::install_version(pyversion, &version_path, &tmp_dir);
-            } else {
-                println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
-            }
+            commands::install_python_version(&pyversion);
         }
         Some(("delete", sub_m)) => {
             if let Some(pyversion) = sub_m.get_one::<String>("pyversion") {
-                // todo add confirmation
-                if utils::check_version_format(&pyversion) {
-                    println!("Deleting Python version: {}", &pyversion);
-                    let version_path = utils::get_version_path(pyversion, &python_versions_dir);
-                    commands::delete_version(&version_path, &pyversion, &tmp_dir);
+                if !utils::is_major_minor_patch(pyversion) {
+                    println!("Invalid Python version format. Please use the format 'number.number.number'.");
+                    process::exit(1);
+                }
+
+                let prompt = format!(
+                    "Are you sure you want to remove the Python version {} from pen? (y/N)",
+                    pyversion
+                );
+                if utils::ask_for_confirmation(&prompt) {
+                    commands::delete_version(&pyversion);
                 } else {
-                    println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
+                    println!("Removing canceled.");
                 }
             } else {
-                // todo add confirmation
-                println!("Deleting the virtual environment in the current directory");
-                commands::delete_env(&env_dir_name, &tmp_dir);
+                if utils::ask_for_confirmation(
+                    "Are you sure you want to delete the virtual environment? (y/N)",
+                ) {
+                    commands::delete_env();
+                } else {
+                    println!("Deletion canceled.");
+                }
             }
         }
         Some(("list", _sub_m)) => {
-            println!("Listing installed Python versions:");
-            commands::list(&python_versions_dir);
+            commands::list();
         }
         Some(("uninstall", _sub_m)) => {
-            // todo atomic
-            // todo add confirmation
-            println!("Uninstalling pen...");
-            commands::uninstall(&pen_dir, &bashrc_file);
+            println!("Uninstalling pen automatically is not yet implemented.")
+            // if utils::ask_for_confirmation("Are you sure you want to uninstall? (y/N)") {
+            //     commands::uninstall();
+            // } else {
+            //     println!("Uninstall canceled.");
+            // }
         }
         Some(("update", _sub_m)) => {
-            // todo atomic
-            println!("Updating pen");
-            commands::update(&tmp_dir, update_script_url);
+            println!("Updating pen automatically is not yet implemented.");
+            // println!("Updating pen");
+            // commands::update(&tmp_dir, update_script_url);
         }
         _ => {
             eprintln!("Unknown command");

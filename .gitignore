@@ -1,3 +1,4 @@
 pythonVersions/
 test/
 target/
+.vscode/
