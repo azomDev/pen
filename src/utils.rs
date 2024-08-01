@@ -1,6 +1,7 @@
 use regex::Regex;
 use std::io::{self, Write};
 use std::path::PathBuf;
+use std::process;
 use std::process::Command as ProcessCommand;
 
 use crate::PYTHON_VERSIONS_DIR;
@@ -81,19 +82,20 @@ pub fn get_latest_patch_version(minor_version: &str) -> String {
                     if status_code == 200 {
                         patch_version += 1; // Valid version, increment and continue
                     } else if patch_version == 0 {
-                        return "none".to_string(); // No valid versions found, return "none"
+                        println!("This Python version does not exist.");
+                        process::exit(1);
                     } else {
-                        return format!("{}.{}", minor_version, patch_version - 1);
                         // Return the last valid version
+                        return format!("{}.{}", minor_version, patch_version - 1);
                     }
                 } else {
                     eprintln!("Error: Failed to parse HTTP status code.");
-                    return "none".to_string(); // Return "none" on error
+                    process::exit(1);
                 }
             }
             Err(e) => {
                 eprintln!("Error executing curl command: {}", e);
-                return "none".to_string(); // Return "none" on error
+                process::exit(1);
             }
         }
     }
