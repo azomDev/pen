@@ -1,107 +1,128 @@
-# **pen**
+# Pen
 
-**pen** is an easy-to-use tool for effortlessly managing and switching between virtual environments with specific Python versions.
-
-Pen is still in alpha, so be careful when using it.
+**Pen** is a tool for managing Python environments with different Python versions. (v0.1.0)
 
 ## Features
 
-- Create virtual environments with specific Python versions.
-- Activate and deactivate virtual environments seamlessly.
-- Simplified command interface for ease of use.
+- Create and manage virtual environments with specified Python versions.
+- Easily install, activate, and deactivate environments.
+- Simple command interface for streamlined usage.
 
 ## Installation
 
-### Manual install without building
-You need to be using bash (other shells support soon)
-```
-git clone https://github.com/azomDev/pen.git
-cd pen
-mkdir ~/.pen
-mv files/unix/core ~/.pen/core
-mv files/pen.sh ~/.pen/
-printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
-cd ..
-rm -rf pen/
-source ~/.bashrc
-```
+### Manual Install (Without Building)
 
-### Manual building
-You will need cargo and you need to be using bash (other shells support soon)
-```
-git clone https://github.com/azomDev/pen.git
-cd pen
-cargo build --release
-mkdir ~/.pen
-mv target/release/pen ~/.pen/core
-mv files/pen.sh ~/.pen/
-printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
-cd ..
-rm -rf pen/
-source ~/.bashrc
-```
+1. Clone the repository and navigate to the directory:
+    ```bash
+    git clone https://github.com/azomDev/pen.git
+    cd pen
+    ```
+
+2. Set up the environment:
+    ```bash
+    mkdir ~/.pen
+    mv files/unix/core ~/.pen/core
+    mv files/pen.sh ~/.pen/
+    printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
+    ```
+
+3. Clean up and apply changes:
+    ```bash
+    cd ..
+    rm -rf pen/
+    source ~/.bashrc
+    ```
+
+### Manual Building
+
+1. Clone the repository and navigate to the directory:
+    ```bash
+    git clone https://github.com/azomDev/pen.git
+    cd pen
+    ```
+
+2. Build the project:
+    ```bash
+    cargo build --release
+    ```
+
+3. Set up the environment:
+    ```bash
+    mkdir ~/.pen
+    mv target/release/pen ~/.pen/core
+    mv files/pen.sh ~/.pen/
+    printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
+    ```
+
+4. Clean up and apply changes:
+    ```bash
+    cd ..
+    rm -rf pen/
+    source ~/.bashrc
+    ```
 
 ## Usage
-pen \<COMMAND\>
+
+**Command Format:** `pen <COMMAND>`
 
 ### Commands
-- **create**: Create a new virtual environment with the specified Python version in the current directory
-  - **Aliases**: `c`
-- **install**: Install a specified Python version
-  - **Aliases**: `i`
-- **delete**: Delete the virtual environment in the current directory or delete a specific Python version
-- **list**: Lists the installed Python versions from pen
-  - **Aliases**: `l`
-- **uninstall**: Completely uninstalls pen from the computer (does not include virtual environments)
-- **help**: Print this message or the help of the given subcommand(s)
 
-#### Options:
-- **-h, --help**: Print help
-- **-V, --version**: Print version
+- **`create`** (`c`): Create a virtual environment with a specific Python version.
+    ```bash
+    pen create 3.9.1
+    ```
 
+- **`install`** (`i`): Install a specific Python version.
+    ```bash
+    pen install 3.8.5
+    ```
 
-### Example Usage
+- **`list`** (`l`): List all installed Python versions.
+    ```bash
+    pen list
+    ```
 
-#### Creating a new virtual environment
-```
-pen create 3.9.1
-```
+- **`delete`**: Delete the virtual environment in the current directory or a specific Python version.
+    ```bash
+    pen delete
+    pen delete 3.8.5
+    ```
 
-#### Installing a specific Python version
-```
-pen install 3.8.5
-```
+- **`activate`** (`a`): Activate the virtual environment.
+    ```bash
+    pen activate
+    ```
 
-#### Deleting the virtual environment in the current directory
-```
-pen delete
-```
+- **`deactivate`** (`d`): Deactivate the current virtual environment.
+    ```bash
+    pen deactivate
+    ```
 
-#### Deleting a specific Python version
-```
-pen delete 3.8.5
-```
+- **`update`**: Update Pen to the latest version.
+    ```bash
+    pen update
+    ```
 
-#### Listing installed Python versions
-```
-pen list
-```
+- **`uninstall`**: Uninstall Pen (does not remove virtual environments).
+    ```bash
+    pen uninstall
+    ```
 
-#### Uninstalling pen completely
-```
-pen uninstall
-```
+- **`help`**: Show help for Pen or a specific command.
+    ```bash
+    pen help
+    pen help create
+    ```
 
-#### Getting help for a specific command
-```
-pen help create
-```
+### Options
+
+- **`-h`, `--help`**: Print help information.
+- **`-V`, `--version`**: Print the version of Pen.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on GitHub, even for the smallest bug or the smallest idea.
-If there is any issue you see that you might want to try doing, just let a comment on the issue and I will let it to you.
+Contributions are welcome! Please open an issue or submit a pull request on GitHub for any bugs or suggestions. Feel free to comment on any issue if you're interested in contributing.
 
 ## License
 
-This project is licensed under the `MIT` License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the LICENSE file for details.
