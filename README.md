@@ -131,6 +131,10 @@ curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.
 - **`-h`, `--help`**: Print help information.
 - **`-V`, `--version`**: Print the version of Pen.
 
+## Notes
+Some might see that this is trying to do something very similar (if not the same) as [pyenv](https://github.com/pyenv/pyenv) and they would be right! I tought of it before knowing pyenv existed, but even after learning about it I tried making my own version, mostly for trying out rust and having fun :)
+
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request on GitHub for any bugs or suggestions. Feel free to comment on any issue if you're interested in contributing.
