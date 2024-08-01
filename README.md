@@ -25,7 +25,7 @@ I am currently seeking assistance with compiling the project for macOS. If you h
     ```bash
     mkdir ~/.pen
     mv files/unix/core ~/.pen/core
-    mv files/main.sh ~/.pen/main.sh
+    mv files/unix/main.sh ~/.pen/main.sh
     printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
     ```
 
@@ -53,7 +53,7 @@ I am currently seeking assistance with compiling the project for macOS. If you h
     ```bash
     mkdir ~/.pen
     mv target/release/pen ~/.pen/core
-    mv files/main.sh ~/.pen/main.sh
+    mv files/unix/main.sh ~/.pen/main.sh
     printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
     ```
 
