@@ -20,7 +20,18 @@ PEN_DIR="$HOME/.pen"
 TMP_DIR="/tmp"
 PEN_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/main.sh"
 # VERSION_TXT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/version.txt"
-PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/core"
+case "$OSTYPE" in
+  linux-gnu)
+    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux/core"
+    ;;
+  darwin*)
+    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
+    ;;
+  *)
+    echo "Unsupported operating system. Exiting."
+    exit 1
+    ;;
+esac
 TMP_PEN_DIR="$TMP_DIR/pen_tmp"
 
 # Function to handle cleanup
