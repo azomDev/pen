@@ -8,11 +8,11 @@ TEXT_FOR_PEN=(
 
 # Define configuration file paths for each shell
 BASH_CONFIG_FILES=(
-  "~/.bashrc"
+  "$HOME/.bashrc"
 )
 
 ZSH_CONFIG_FILES=(
-  "~/.zshrc"
+  "$HOME/.zshrc"
 )
 
 # Define variables
@@ -40,7 +40,7 @@ cleanup() {
     rm -rf "$TMP_PEN_DIR"
 }
 
-# Check if the tmp directory exists, if no, exit
+# Check if the tmp directory exists, if not, exit
 if [ ! -d "$TMP_DIR" ]; then
     echo "/tmp directory does not exist. Aborting installation."
     exit 1
@@ -81,12 +81,7 @@ chmod +x "$PEN_DIR/core"
 # Create pythonVersions directory inside .pen
 mkdir -p "$PEN_DIR/pythonVersions"
 
-
 ################################################################
-
-
-
-# Create the alias
 
 # Function to add text to configuration files (appending to the end)
 add_text() {
@@ -114,25 +109,43 @@ add_text() {
     fi
   done
 }
-# Prompt user to select shell
-echo "Select the shell you want to modify:"
-echo "1) Bash"
-echo "2) Zsh"
-read -p "Enter the number corresponding to your choice: " shell_choice
 
-case "$shell_choice" in
-  1)
-    CONFIG_FILES=("${BASH_CONFIG_FILES[@]}")
-    ;;
-  2)
+# Determine which shell configuration file(s) to modify
+bashrc_exists=false
+zshrc_exists=false
+
+if [[ -f "$HOME/.bashrc" ]]; then
+  bashrc_exists=true
+fi
+
+if [[ -f "$HOME/.zshrc" ]]; then
+  zshrc_exists=true
+fi
+
+if $bashrc_exists && $zshrc_exists; then
+  CONFIG_FILES=("${BASH_CONFIG_FILES[@]}" "${ZSH_CONFIG_FILES[@]}")
+  shell_choice=3
+elif $bashrc_exists; then
+  CONFIG_FILES=("${BASH_CONFIG_FILES[@]}")
+  shell_choice=1
+elif $zshrc_exists; then
+  CONFIG_FILES=("${ZSH_CONFIG_FILES[@]}")
+  shell_choice=2
+else
+  # No .bashrc or .zshrc found
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Creating .zshrc for macOS."
+    touch "$HOME/.zshrc"
     CONFIG_FILES=("${ZSH_CONFIG_FILES[@]}")
-    ;;
-  *)
-    echo "Invalid selection. Please choose 1 for Bash or 2 for Zsh."
+    shell_choice=2
+  else
+    echo "No .bashrc or .zshrc found. Please create one manually."
     exit 1
-    ;;
-esac
-echo "Adding text..."
+  fi
+fi
+
+# Add text to the selected configuration file(s)
+echo "Adding text to configuration file(s)..."
 add_text CONFIG_FILES[@]
 
 echo "Installation complete. Please restart your terminal session to apply the changes."
