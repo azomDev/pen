@@ -13,6 +13,12 @@ I am currently seeking assistance with compiling the project for macOS. If you h
 
 ## Installation
 
+### Fast Install
+
+```
+curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.sh" | bash
+```
+
 ### Manual Install (Without Building)
 
 1. Clone the repository and navigate to the directory:
