@@ -12,6 +12,9 @@ I am currently seeking assistance with compiling the project for macOS. If you h
 - Simple command interface for streamlined usage.
 
 ## Installation
+Note that Windows is not supported (for now)
+Same for MacOS, although it just needs building as said above
+Only bash and zsh are supported (for now)
 
 ### Fast Install
 
