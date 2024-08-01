@@ -12,8 +12,8 @@ Pen is still in alpha, so be careful when using it.
 
 ## Installation
 
-### Manual installation
-You will need cargo
+### Manual install without building
+You need to be using bash (other shells support soon)
 ```
 git clone https://github.com/azomDev/pen.git
 cd pen
@@ -21,9 +21,25 @@ cargo build --release
 mkdir ~/.pen
 cp target/release/pen ~/.pen/core
 cp files/pen.sh ~/.pen/
-sudo ln -s ~/.pen/pen.sh /usr/local/bin/pen
+printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
 cd ..
 rm -rf pen/
+source ~/.bashrc
+```
+
+### Manual building
+You will need cargo and you need to be using bash (other shells support soon)
+```
+git clone https://github.com/azomDev/pen.git
+cd pen
+cargo build --release
+mkdir ~/.pen
+cp target/release/pen ~/.pen/core
+cp files/pen.sh ~/.pen/
+printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
+cd ..
+rm -rf pen/
+source ~/.bashrc
 ```
 
 ## Usage
