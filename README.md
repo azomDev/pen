@@ -17,10 +17,9 @@ You need to be using bash (other shells support soon)
 ```
 git clone https://github.com/azomDev/pen.git
 cd pen
-cargo build --release
 mkdir ~/.pen
-cp target/release/pen ~/.pen/core
-cp files/pen.sh ~/.pen/
+mv files/unix/core ~/.pen/core
+mv files/pen.sh ~/.pen/
 printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
 cd ..
 rm -rf pen/
@@ -34,8 +33,8 @@ git clone https://github.com/azomDev/pen.git
 cd pen
 cargo build --release
 mkdir ~/.pen
-cp target/release/pen ~/.pen/core
-cp files/pen.sh ~/.pen/
+mv target/release/pen ~/.pen/core
+mv files/pen.sh ~/.pen/
 printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
 cd ..
 rm -rf pen/
