@@ -1,6 +1,6 @@
 # Pen
 
-**Pen** is a tool for managing Python environments with different Python versions. (v0.1.0)
+**Pen** is a tool for managing Python environments with different Python versions. (v0.2.0)
 
 ## Note
 I am currently seeking assistance with compiling the project for macOS. If you have experience with Rust and macOS, and would like to help, please reach out!
