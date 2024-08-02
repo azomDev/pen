@@ -3,7 +3,7 @@
 # Function to activate the virtual environment
 activate_env() {
   if [ ! -d "./env" ]; then
-    echo "The ./env directory is missing, which means the virtual environment is not present"
+    echo "The ./env directory is missing, which means no virtual environment is present"
     return
   fi
 
@@ -36,7 +36,7 @@ case "$1" in
     ;;
   deactivate | d)
     deactivate_env
-    ;;  
+    ;;
   *)
     $HOME/.pen/core "$@"
     ;;

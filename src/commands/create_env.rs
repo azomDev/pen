@@ -33,8 +33,6 @@ pub fn create_env(pyversion: &str) {
         return;
     }
 
-    // todo check if python_path exists. If not, install the version
-
     install_python_version::install_python_version(&full_version);
 
     let python_bin = python_path.join("bin/python3");
