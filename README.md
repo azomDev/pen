@@ -10,7 +10,7 @@
 
 ## Installation
 Note that Windows is not supported (for now)\
-Same for MacOS, although it just needs building as said above\
+Same for MacOS, although it just needs building, which I am working on\
 Only bash and zsh are supported (for now)
 
 ### Fast Install
