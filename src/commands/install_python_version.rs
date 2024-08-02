@@ -172,6 +172,7 @@ fn download_things(full_version: &str, temp_tarball_path: &PathBuf) {
 fn download_file(url: &str, file_path: &PathBuf) -> bool {
     // Execute curl command to fetch HTTP status code
     let status_code_output = ProcessCommand::new("curl")
+        .arg("-4")
         .arg("-s") // silent mode
         .arg("-I")
         .arg("-o")
@@ -215,6 +216,7 @@ fn download_file(url: &str, file_path: &PathBuf) -> bool {
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
+        .arg("-4")
         .arg("-o")
         .arg(file_path)
         .arg("-L")

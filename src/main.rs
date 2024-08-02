@@ -55,7 +55,7 @@ fn main() {
         .subcommand(Command::new("create")
             .visible_alias("c")
             .styles(clap::builder::styling::Styles::styled()
-            .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD) // todo finish this and put it on the rest
+            .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD)
         )
             .about("Create a virtual environment with a Python version")
             .long_about("Create a new virtual environment with the specified Python version in the current directory")
