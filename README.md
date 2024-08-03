@@ -2,9 +2,6 @@
 
 **Pen** is a tool for managing Python environments with different Python versions. (v0.2.0)
 
-## Note
-I am currently seeking assistance with compiling the project for macOS. If you have experience with Rust and macOS, and would like to help, please reach out!
-
 ## Features
 
 - Create and manage virtual environments with specified Python versions.
@@ -12,6 +9,15 @@ I am currently seeking assistance with compiling the project for macOS. If you h
 - Simple command interface for streamlined usage.
 
 ## Installation
+Note that Windows is not supported (for now)\
+Same for MacOS, although it just needs building, which I am working on\
+Only bash and zsh are supported (for now)
+
+### Fast Install
+
+```
+curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.sh" | bash
+```
 
 ### Manual Install (Without Building)
 
@@ -25,7 +31,7 @@ I am currently seeking assistance with compiling the project for macOS. If you h
     ```bash
     mkdir ~/.pen
     mv files/unix/core ~/.pen/core
-    mv files/pen.sh ~/.pen/
+    mv files/unix/main.sh ~/.pen/main.sh
     printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
     ```
 
@@ -53,7 +59,7 @@ I am currently seeking assistance with compiling the project for macOS. If you h
     ```bash
     mkdir ~/.pen
     mv target/release/pen ~/.pen/core
-    mv files/pen.sh ~/.pen/
+    mv files/unix/main.sh ~/.pen/main.sh
     printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
     ```
 
@@ -121,6 +127,10 @@ I am currently seeking assistance with compiling the project for macOS. If you h
 
 - **`-h`, `--help`**: Print help information.
 - **`-V`, `--version`**: Print the version of Pen.
+
+## Notes
+Some might see that this is trying to do something very similar (if not the same) as [pyenv](https://github.com/pyenv/pyenv) and they would be right! I tought of it before knowing pyenv existed, but even after learning about it I tried making my own version, mostly for trying out rust and having fun :)
+
 
 ## Contributing
 
