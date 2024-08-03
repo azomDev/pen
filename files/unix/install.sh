@@ -56,9 +56,9 @@ fi
 mkdir -p "$TMP_PEN_DIR"
 
 # Curl the main.sh script and core executable from GitHub and put them in the tmp directory
-curl -4 -o "$TMP_PEN_DIR/main.sh" "$PEN_SCRIPT_URL" || { echo "Failed to download main.sh. Exiting."; cleanup; exit 1; }
+curl -4 -s -o "$TMP_PEN_DIR/main.sh" "$PEN_SCRIPT_URL" || { echo "Failed to download main.sh. Exiting."; cleanup; exit 1; }
 # curl -o "$TMP_PEN_DIR/version.txt" "$VERSION_TXT_URL" || { echo "Failed to download version.txt. Exiting."; cleanup; exit 1; }
-curl -4 -o "$TMP_PEN_DIR/core" "$PEN_EXECUTABLE_URL" || { echo "Failed to download core. Exiting."; cleanup; exit 1; }
+curl -4 -s -o "$TMP_PEN_DIR/core" "$PEN_EXECUTABLE_URL" || { echo "Failed to download core. Exiting."; cleanup; exit 1; }
 
 # Create .pen directory in the home of the user
 mkdir -p "$PEN_DIR"
@@ -79,7 +79,7 @@ chmod +x "$PEN_DIR/main.sh"
 chmod +x "$PEN_DIR/core"
 
 # Create pythonVersions directory inside .pen
-mkdir -p "$PEN_DIR/pythonVersions"
+mkdir -p "$PEN_DIR/python_versions"
 
 ################################################################
 
