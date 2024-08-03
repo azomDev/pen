@@ -151,7 +151,9 @@ fn main() {
             // }
         }
         Some(("update", _sub_m)) => {
-            println!("Updating pen automatically is not yet implemented.");
+            let message = "Updating pen automatically is not yet implemented. For now, uninstall pen with `pen uninstall` and download it again to update it. Updates will be coming in v1.0.0 so keep an eye on the \x1b]8;;https://github.com/azomDev/pen\x1b\\\x1b[34mgithub\x1b[0m\x1b]8;;\x1b\\";
+            println!("{}", message);
+        
             // println!("Updating pen");
             // commands::update(&tmp_dir, update_script_url);
         }
