@@ -6,13 +6,6 @@ use std::process::Command as ProcessCommand;
 
 use crate::PYTHON_VERSIONS_DIR;
 
-// todo rename to is_well_formated?
-// pub fn check_version_format(version: &str) -> bool {
-//     let re = Regex::new(r"^\d+\.\d+(\.\d+)?$").expect("Invalid regex");
-//     return re.is_match(version);
-// }
-//
-
 pub fn is_major_minor(version: &str) -> bool {
     let re = Regex::new(r"^\d+\.\d+$").expect("Invalid regex");
     re.is_match(version)
@@ -21,10 +14,6 @@ pub fn is_major_minor(version: &str) -> bool {
 pub fn is_major_minor_patch(version: &str) -> bool {
     let re = Regex::new(r"^\d+\.\d+\.\d+$").expect("Invalid regex");
     re.is_match(version)
-}
-
-pub fn is_major_minor_or_patch(version: &str) -> bool {
-    is_major_minor(version) || is_major_minor_patch(version)
 }
 
 pub fn get_version_path(pyversion: &str) -> PathBuf {
