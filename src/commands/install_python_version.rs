@@ -176,7 +176,7 @@ fn download_file(url: &str, file_path: &PathBuf) -> bool {
         .arg("-s") // silent mode
         .arg("-I")
         .arg("-o")
-        .arg("%{http_code}")
+        .arg("/dev/null") // Discard the output
         .arg("-w")
         .arg("%{http_code}") // print HTTP status code
         .arg(url)

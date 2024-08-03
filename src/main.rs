@@ -27,10 +27,9 @@ lazy_static! {
     };
     pub static ref TMP_DIR: PathBuf = {
         let dir = PEN_DIR.join("temp");
-        let _ =  fs::remove_dir_all(&dir).is_err();
-        fs::create_dir(&dir).expect("Failed to create temp directory");
         return dir;
     };
+
     pub static ref PYTHON_VERSIONS_DIR: PathBuf = {
         let dir = PEN_DIR.join("python_versions");
         if !dir.exists() || !dir.is_dir() {
@@ -100,6 +99,10 @@ fn main() {
             .long_about("Completely uninstall pen from the computer (does not include virtual environements)"))
 
         .get_matches();
+
+    // clear the temp file each time a command is executed
+    let _ = fs::remove_dir_all(&*TMP_DIR).is_err();
+    fs::create_dir(&*TMP_DIR).expect("Failed to create temp directory");
 
     match matches.subcommand() {
         Some(("create", sub_m)) => {
