@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
 
 PEN_DIR="$HOME/.pen"
 TMP_DIR="/tmp"
@@ -33,11 +34,11 @@ fi
 
 case "$OSTYPE" in
   linux-gnu)
-    PEN_EXECUTABLE_URL="https://github.com/azomDev/pen/raw/main/files/unix/linux/core"
+    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux/core"
     DEFAULT_SHELL="bash"
     ;;
   darwin*)
-    PEN_EXECUTABLE_URL="https://github.com/azomDev/pen/raw/main/files/unix/macos/core"
+    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
     DEFAULT_SHELL="zsh"
     ;;
   *)
@@ -113,7 +114,7 @@ mkdir -p "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions d
 ## ADD LINE TO SHELL CONFIG
 
 if [[ -z "$chosen_shell" ]]; then
-    add_text "$default_shell"
+    add_text "$DEFAULT_SHELL"
 elif [[ "$chosen_shell" == "bash" || "$chosen_shell" == "zsh" ]]; then
     add_text "$chosen_shell"
 else
