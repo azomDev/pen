@@ -1,90 +1,61 @@
-// use reqwest::blocking::Client;
-// use reqwest::header::USER_AGENT;
-// use std::fs::File;
-// use std::io::copy;
-// use std::path::PathBuf;
-// use std::process::Command;
+use crate::{utils, TMP_DIR, UPDATE_SCRIPT_URL};
+use std::os::unix::fs::PermissionsExt;
+use std::{fs, path::PathBuf, process};
 
-// #[cfg(unix)]
-// use std::os::unix::fs::PermissionsExt;
+// todo everywhere in the project streamline how the prinln and the eprinln are written
 
-// pub fn update(temp_dir: &PathBuf, update_script_url: &str) {
-//     let temp_file_path = temp_dir.join("update_script");
+// todo finish and check everything in this file
+pub fn update_pen() {
+    println!("Updating pen...");
 
-//     if download_file(update_script_url, &temp_file_path) {
-//         if !run_update_script(&temp_file_path) {
-//             eprintln!("Error: Failed to execute the update script");
-//             return;
-//         }
-//     } else {
-//         eprintln!("Error: Failed to download update script");
-//         return;
-//     }
-//     println!("Update successful");
-// }
+    // todo what the below comments says might actually be deletable if curl overwrites the file at the destination
+    // Check if there is already a file at this path and delete it if it exists. Exit on failure.
+    let temp_update_script_path = TMP_DIR.join("update_script");
+    if temp_update_script_path.exists() {
+        if fs::remove_file(&temp_update_script_path).is_err() {
+            eprintln!("Error: Failed to delete existing update script.");
+            process::exit(1);
+        }
+    }
+    utils::download_file(UPDATE_SCRIPT_URL, &temp_update_script_path);
+    run_update_script(&temp_update_script_path);
 
-// fn download_file(url: &str, file_path: &PathBuf) -> bool {
-//     let client = match Client::new()
-//         .get(url)
-//         .header(USER_AGENT, "Rust reqwest")
-//         .send()
-//     {
-//         Ok(response) => match response.error_for_status() {
-//             Ok(valid_response) => valid_response,
-//             Err(_) => return false,
-//         },
-//         Err(_) => return false,
-//     };
+    println!("Update successful.");
+}
 
-//     let mut file = match File::create(&file_path) {
-//         Ok(f) => f,
-//         Err(_) => return false,
-//     };
+// check everything in this function
+fn run_update_script(file_path: &PathBuf) {
+    // Check if the file exists and is a regular file
+    let metadata = match fs::metadata(file_path) {
+        Ok(metadata) if metadata.is_file() => metadata,
+        _ => {
+            eprintln!("Error: File does not exist or is not a regular file.");
+            process::exit(1);
+        }
+    };
 
-//     let content = match client.bytes() {
-//         Ok(bytes) => bytes,
-//         Err(_) => return false,
-//     };
+    // Set the file permissions to make it executable
+    let mut permissions = metadata.permissions();
+    permissions.set_mode(0o755); // rwxr-xr-x
 
-//     if copy(&mut content.as_ref(), &mut file).is_err() {
-//         return false;
-//     }
+    if fs::set_permissions(file_path, permissions).is_err() {
+        eprintln!("Error: Failed to set file permissions.");
+        process::exit(1);
+    }
 
-//     return true;
-// }
+    // Try to run the script with /bin/sh
+    let status = process::Command::new("/bin/sh").arg(file_path).status();
 
-// fn run_update_script(file_path: &PathBuf) -> bool {
-//     if cfg!(target_os = "windows") {
-//         if Command::new("cmd")
-//             .args(&["/C", file_path.to_str().unwrap()])
-//             .status()
-//             .is_err()
-//         {
-//             return false;
-//         }
-//     } else {
-//         // Make the script executable
-//         let perms = match std::fs::metadata(file_path) {
-//             Ok(metadata) => metadata.permissions(),
-//             Err(_) => return false,
-//         };
-
-//         let mut perms = perms;
-//         #[cfg(unix)]
-//         perms.set_mode(0o755);
-
-//         if std::fs::set_permissions(file_path, perms).is_err() {
-//             return false;
-//         }
-
-//         if Command::new("/bin/sh")
-//             .arg(file_path.to_str().unwrap())
-//             .status()
-//             .is_err()
-//         {
-//             return false;
-//         }
-//     }
-
-//     true
-// }
+    // Check if the command executed successfully
+    match status {
+        Ok(status) if status.success() => (),
+        Ok(_) => {
+            eprintln!("Error: Script execution failed with non-zero process::exit code.");
+            process::exit(1);
+        }
+        Err(_) => {
+            eprintln!("Error: Failed to execute script.");
+            process::exit(1);
+        }
+    }
+}

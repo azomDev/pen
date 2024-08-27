@@ -2,7 +2,6 @@
 
 # Define the lines of text to add or remove
 TEXT_FOR_PEN=(
-  '# pen'
   'alias pen=". $HOME/.pen/main.sh"'
 )
 

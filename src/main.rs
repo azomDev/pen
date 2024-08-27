@@ -2,20 +2,20 @@
 extern crate lazy_static;
 
 use clap::{Arg, Command};
+use dirs;
 use std::{fs, path::PathBuf, process};
-// use dirs::home_dir;
-
 mod commands;
+mod py_install_algorithms;
 mod utils;
 
 // help_template.rs
 // line 1059
 // spec_vals.push(format!("[aliases: {all_als}]"));
 
-pub static ENV_DIR_NAME: &str = "env";
+pub const ENV_DIR_NAME: &str = "env";
+pub const UPDATE_SCRIPT_URL: &str = "aaa"; // todo put the actual url
 
 lazy_static! {
-    // let update_script_url = "https://raw.githubusercontent.com/azomDev/pen/main/files/update.sh";
     pub static ref HOME_DIR: PathBuf = dirs::home_dir().expect("Failed to get home directory");
     pub static ref PEN_DIR: PathBuf = {
         let dir = HOME_DIR.join(".pen");
@@ -25,15 +25,14 @@ lazy_static! {
         }
         return dir;
     };
-    pub static ref TMP_DIR: PathBuf = {
-        let dir = PEN_DIR.join("temp");
-        return dir;
-    };
-
+    pub static ref TMP_DIR: PathBuf = PEN_DIR.join("temp");
     pub static ref PYTHON_VERSIONS_DIR: PathBuf = {
         let dir = PEN_DIR.join("python_versions");
         if !dir.exists() || !dir.is_dir() {
-            eprintln!("Weird, the directory {} does not exist. Creating it...", dir.display());
+            eprintln!(
+                "Weird, the directory {} does not exist. Creating it...",
+                dir.display()
+            );
             fs::create_dir(&dir).expect(&format!("Failed to create {}", dir.display()));
         }
         return dir;
@@ -46,7 +45,7 @@ lazy_static! {
 fn main() {
     let matches = Command::new("pen")
         .bin_name("pen")
-        .version("0.2.0")
+        .version("0.3.0")
         .about("pen is a tool for managing Python environments with different Python versions.")
         .subcommand_required(true)
         .arg_required_else_help(true)
@@ -55,6 +54,7 @@ fn main() {
             .visible_alias("c")
             .styles(clap::builder::styling::Styles::styled()
             .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD)
+            // todo add style for all commands, this is not important in the beginning tho
         )
             .about("Create a virtual environment with a Python version")
             .long_about("Create a new virtual environment with the specified Python version in the current directory")
@@ -101,61 +101,40 @@ fn main() {
         .get_matches();
 
     // clear the temp file each time a command is executed
-    let _ = fs::remove_dir_all(&*TMP_DIR).is_err();
-    fs::create_dir(&*TMP_DIR).expect("Failed to create temp directory");
+    if !utils::try_deleting_dir(&*TMP_DIR, None) {
+        eprintln!("Failed to clear temp directory, exiting");
+        process::exit(1);
+    }
+    if fs::create_dir(&*TMP_DIR).is_err() {
+        eprintln!("Failed to create temp directory, exiting");
+        process::exit(1);
+    }
 
     match matches.subcommand() {
-        Some(("create", sub_m)) => {
-            let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
-            commands::create_env(&pyversion);
+        Some(("create", args)) => {
+            let py_version: &String = args.get_one("pyversion").expect("required argument");
+            commands::create_env(&py_version);
         }
-        Some(("install", sub_m)) => {
-            let pyversion: &String = sub_m.get_one("pyversion").expect("required argument");
-            commands::install_python_version(&pyversion);
+        Some(("install", args)) => {
+            let pyversion: &String = args.get_one("pyversion").expect("required argument");
+            commands::install_py_version(&pyversion);
         }
-        Some(("delete", sub_m)) => {
-            if let Some(pyversion) = sub_m.get_one::<String>("pyversion") {
-                if !utils::is_major_minor_patch(pyversion) {
-                    println!("Invalid Python version format. Please use the format 'number.number.number'.");
-                    process::exit(1);
-                }
-
-                let prompt = format!(
-                    "Are you sure you want to remove the Python version {} from pen? (y/N)",
-                    pyversion
-                );
-                if utils::ask_for_confirmation(&prompt) {
-                    commands::delete_version(&pyversion);
-                } else {
-                    println!("Removing canceled.");
-                }
+        Some(("delete", args)) => {
+            if let Some(py_version) = args.get_one::<String>("pyversion") {
+                commands::delete_py_version(&py_version);
             } else {
-                if utils::ask_for_confirmation(
-                    "Are you sure you want to delete the virtual environment? (y/N)",
-                ) {
-                    commands::delete_env();
-                } else {
-                    println!("Deletion canceled.");
-                }
+                commands::delete_env();
             }
         }
-        Some(("list", _sub_m)) => {
-            commands::list();
+        Some(("list", _args)) => {
+            commands::list_py_versions();
         }
-        Some(("uninstall", _sub_m)) => {
-            println!("Uninstalling pen automatically is not yet implemented.")
-            // if utils::ask_for_confirmation("Are you sure you want to uninstall? (y/N)") {
-            //     commands::uninstall();
-            // } else {
-            //     println!("Uninstall canceled.");
-            // }
+        Some(("uninstall", _args)) => {
+            commands::uninstall();
         }
-        Some(("update", _sub_m)) => {
+        Some(("update", _args)) => {
             let message = "Updating pen automatically is not yet implemented. For now, uninstall pen with `pen uninstall` and download it again to update it. Updates will be coming in v1.0.0 so keep an eye on the \x1b]8;;https://github.com/azomDev/pen\x1b\\\x1b[34mgithub\x1b[0m\x1b]8;;\x1b\\";
             println!("{}", message);
-        
-            // println!("Updating pen");
-            // commands::update(&tmp_dir, update_script_url);
         }
         _ => {
             eprintln!("Unknown command");

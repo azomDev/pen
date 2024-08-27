@@ -1,6 +1,6 @@
 # Pen
 
-**Pen** is a tool for managing Python environments with different Python versions. (v0.2.0)
+**Pen** is a tool for managing Python environments with different Python versions. (v0.3.0)
 
 ## Features
 

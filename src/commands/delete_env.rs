@@ -1,32 +1,32 @@
-use std::fs;
-use std::path::PathBuf;
-
-use crate::{ENV_DIR_NAME, TMP_DIR};
+use crate::{utils, ENV_DIR_NAME, TMP_DIR};
+use std::{path::PathBuf, process};
 
 pub fn delete_env() {
+    if !utils::confirm_action("Are you sure you want to delete the virtual environment? (y/N)") {
+        println!("Deletion canceled.");
+        process::exit(0);
+    }
+
     let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
     if !env_dir.exists() || !env_dir.is_dir() {
         eprintln!("Virtual environnement in the current directory does not exist");
-        return;
+        process::exit(1);
     }
 
     println!("Deleting the virtual environment in the current directory");
 
-    let temp_version_path = TMP_DIR.join("env_to_delete");
+    let delete_env_path = TMP_DIR.join("deleted_env_temp");
 
-    if let Err(e) = fs::rename(&env_dir, &temp_version_path) {
+    if !utils::try_deleting_dir(&env_dir, Some(&delete_env_path)) {
         eprintln!(
-            "Deletion of virual environnement {} failed: {}",
-            env_dir.display(),
-            e
+            "Deletion of virual environnement {} failed",
+            &env_dir.display()
         );
-        return;
+        process::exit(1);
     }
-
-    let _ = fs::remove_dir_all(&temp_version_path); // ignore error
 
     println!(
         "Deletion of virual environnement {} successful",
-        env_dir.display()
+        &env_dir.display()
     );
 }

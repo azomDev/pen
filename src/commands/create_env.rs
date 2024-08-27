@@ -1,57 +1,82 @@
-use std::path::PathBuf;
-use std::process;
-use std::process::Command as ProcessCommand;
+use super::install_py_version;
+use crate::{utils, ENV_DIR_NAME, TMP_DIR};
+use std::{fs, path::PathBuf, process};
 
-use crate::{utils, ENV_DIR_NAME};
+pub fn create_env(py_version: &str) {
+    utils::assert_major_minor_patch(&py_version);
 
-use super::install_python_version;
+    let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
+    // todo: we need to check if env_dir already exists as a directory. If yes exit. On error exit. If it is found to be a file, exit with error saying theres a file with the name already
 
-pub fn create_env(pyversion: &str) {
-    let full_version: String;
-    if utils::is_major_minor(pyversion) {
-        full_version = utils::get_latest_patch_version(&pyversion);
-    } else if utils::is_major_minor_patch(pyversion) {
-        full_version = pyversion.to_string();
-    } else {
-        println!("Invalid Python version format. Please use the format 'number.number' or 'number.number.number'.");
-        process::exit(1);
+    match fs::metadata(&env_dir) {
+        Ok(metadata) => {
+            // Check if the metadata corresponds to a directory
+            if metadata.is_dir() {
+                eprintln!(
+                    "env directory {} already exists in current directory",
+                    &env_dir.display()
+                );
+                process::exit(0);
+            } else {
+                // todo there is a file with the same path as where the dir will be, delete it
+            }
+        }
+        Err(e) => {
+            // If there was an error, check if it is a "not found" error (which means the directory does not exist)
+            if e.kind() == std::io::ErrorKind::NotFound {
+                // Directory does not exist, proceed
+            } else {
+                // Handle other potential errors (e.g., permission denied)
+                eprintln!("Error checking directory: {}", e);
+                process::exit(1);
+            }
+        }
     }
 
     println!(
         "Creating Python virtual environnement with version: {}",
-        full_version
+        &py_version
     );
 
-    let python_path: std::path::PathBuf = utils::get_version_path(&full_version);
-    let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
+    install_py_version(&py_version);
 
-    if env_dir.exists() && env_dir.is_dir() {
-        eprintln!(
-            "env directory {} already exists in current directory",
-            &env_dir.display()
-        );
-        return;
-    }
+    let py_version_dir = utils::get_version_path(&py_version);
+    let py_binary = py_version_dir.join("bin/python3");
 
-    install_python_version::install_python_version(&full_version);
-
-    let python_bin = python_path.join("bin/python3");
-
-    // todo apparently "expect" will panic on error. If there is an error try to delete the folder if it was partially created. If nothing has been created, exit program with error message.
-    if ProcessCommand::new(python_bin)
+    // Attempt to create the virtual environment
+    let status = process::Command::new(&py_binary)
+        .stdin(process::Stdio::null())
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
         .arg("-m")
         .arg("venv")
         .arg(&env_dir)
-        .status()
-        .expect("Failed to create virtual environment")
-        .success()
-    // todo there is the .expect and the else to say it failed. Mabye put them together
-    {
-        println!("Virtual environment created at {}", &env_dir.display());
-    } else {
-        eprintln!(
-            "Failed to create virtual environment at {}",
-            &env_dir.display()
-        );
+        .status();
+
+    fn handle_failure(env_dir: &PathBuf) {
+        if !utils::try_deleting_dir(&env_dir, Some(&TMP_DIR.join("deleted_env_temp"))) {
+            eprintln!(
+                "Catastrophic failure: Unable to delete {}. Manual cleanup required",
+                &env_dir.display()
+            );
+            process::exit(1);
+        }
+    }
+
+    match status {
+        Ok(status) => {
+            if status.success() {
+                println!("Virtual environment created at {}", &env_dir.display());
+            } else {
+                // Status is Ok but the command was not successful.
+                eprintln!("Command was not successful");
+                handle_failure(&env_dir);
+            }
+        }
+        Err(e) => {
+            // Error occurred when trying to run the command.
+            eprintln!("Failed to execute command: {}", e);
+            handle_failure(&env_dir);
+        }
     }
 }
