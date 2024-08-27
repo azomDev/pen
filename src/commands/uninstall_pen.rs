@@ -69,7 +69,7 @@ fn get_valid_config_files(config_files: &[PathBuf]) -> Vec<&PathBuf> {
 
                 valid_files.push(file_path);
             }
-            Err(e) => {
+            Err(_) => {
                 eprintln!(
                     "Unable to get metadata of {}, aborting",
                     file_path.display()
@@ -103,13 +103,17 @@ fn remove_alias_from_all_config_files(config_files: Vec<&PathBuf>) {
             }
         };
 
-        // todo check this paragraph to be sure it does what it is supposed to do
         // Remove the specific line
-        let new_content: String = content
-            .lines()
-            .filter(|&line| line.trim() != "alias pen=\". $HOME/.pen/main.sh\"")
-            .collect::<Vec<&str>>()
-            .join("\n");
+        let mut new_content = String::new();
+        for line in content.lines() {
+            let trimmed_line = line.trim();
+            if trimmed_line != "alias pen=\". $HOME/.pen/main.sh\"" {
+                if !new_content.is_empty() {
+                    new_content.push('\n');
+                }
+                new_content.push_str(line);
+            }
+        }
 
         // if data did not change, no need to try writing the data
         if new_content == content {
@@ -117,7 +121,7 @@ fn remove_alias_from_all_config_files(config_files: Vec<&PathBuf>) {
         }
 
         // Write the new content back to the file
-        match fs::write(&config_file, new_content) {
+        match fs::write(&config_file, &new_content) {
             Ok(()) => {
                 at_least_one_file_edited = true;
             }
@@ -130,11 +134,23 @@ fn remove_alias_from_all_config_files(config_files: Vec<&PathBuf>) {
                     );
                     continue;
                 } else {
-                    // todo check if the data has been altered partially. If yes, notify the user
-                    eprint!(
-                        "Unable to write new data to {}, aborting",
-                        config_file.display()
-                    );
+                    match fs::read_to_string(&config_file) {
+                        Ok(file_string) => {
+                            if &file_string == &new_content {
+                                eprintln!("Failed to uninstall {}", e);
+                            } else {
+                                eprintln!(
+                                    "Catastrophic failure: Unable to write to {}. Manual cleanup required. Error: {}",
+                                    config_file.display(),
+                                    e
+                                );
+                                continue;
+                            }
+                        }
+                        Err(_) => {
+                            // todo
+                        }
+                    };
                     process::exit(1);
                 }
             }

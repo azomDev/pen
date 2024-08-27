@@ -28,6 +28,7 @@ lazy_static! {
     pub static ref TMP_DIR: PathBuf = PEN_DIR.join("temp");
     pub static ref PYTHON_VERSIONS_DIR: PathBuf = {
         let dir = PEN_DIR.join("python_versions");
+        // todo FINAL actually if dir exists and is not dir, idk panic. If it already exists cool. If it does not exist just create it silently
         if !dir.exists() || !dir.is_dir() {
             eprintln!(
                 "Weird, the directory {} does not exist. Creating it...",
