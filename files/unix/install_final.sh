@@ -33,11 +33,11 @@ fi
 
 case "$OSTYPE" in
   linux-gnu)
-    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux/core"
+    PEN_EXECUTABLE_URL="https://github.com/azomDev/pen/raw/main/files/unix/linux/core"
     DEFAULT_SHELL="bash"
     ;;
   darwin*)
-    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
+    PEN_EXECUTABLE_URL="https://github.com/azomDev/pen/raw/main/files/unix/macos/core"
     DEFAULT_SHELL="zsh"
     ;;
   *)
