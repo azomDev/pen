@@ -40,16 +40,19 @@ case "$OSTYPE" in
     PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
 
     # Determine macOS version
-    macos_version=$(sw_vers -productVersion | awk -F '.' '{print $1$2}')
+    macos_version=$(sw_vers -productVersion)
+    major_version=$(echo "$macos_version" | awk -F '.' '{print $1}')
+    minor_version=$(echo "$macos_version" | awk -F '.' '{print $2}')
 
-    if [[ "$macos_version" -ge 1015 ]]; then
-      # macOS Catalina (10.15) and later
-      DEFAULT_SHELL="zsh"
+
+    if [[ "$major_version" -gt 10 ]] || { [[ "$major_version" -eq 10 ]] && [[ "$minor_version" -ge 15 ]]; }; then
+        # macOS Catalina (10.15) and later
+        DEFAULT_SHELL="zsh"
     else
-      # Older macOS versions
-      PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
-      DEFAULT_SHELL="bash"
+        # Older macOS versions
+        DEFAULT_SHELL="bash"
     fi
+
     ;;
   *)
     echo "Unsupported operating system. Exiting."
@@ -95,6 +98,8 @@ add_text() {
         fi
     fi
 }
+
+# todo mabye add text to the config before copying files to .pen because theres a question in the add text which could be canceled and make the .pen dir just sit there
 
 
 ## ASK ABOUT DEFAULT SHELL
