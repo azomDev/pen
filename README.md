@@ -16,7 +16,7 @@ Only bash and zsh are supported (for now)
 ### Fast Install
 
 ```
-curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.sh" | bash
+bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.sh")
 ```
 
 ### Manual Install (Without Building)
@@ -32,7 +32,7 @@ curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.
     mkdir ~/.pen
     mv files/unix/core ~/.pen/core
     mv files/unix/main.sh ~/.pen/main.sh
-    printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
+    printf '\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
     ```
 
 3. Clean up and apply changes:
@@ -60,7 +60,7 @@ curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.
     mkdir ~/.pen
     mv target/release/pen ~/.pen/core
     mv files/unix/main.sh ~/.pen/main.sh
-    printf '\n\n# pen\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
+    printf '\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
     ```
 
 4. Clean up and apply changes:
@@ -127,9 +127,6 @@ curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.
 
 - **`-h`, `--help`**: Print help information.
 - **`-V`, `--version`**: Print the version of Pen.
-
-## Notes
-Some might see that this is trying to do something very similar (if not the same) as [pyenv](https://github.com/pyenv/pyenv) and they would be right! I tought of it before knowing pyenv existed, but even after learning about it I tried making my own version, mostly for trying out rust and having fun :)
 
 
 ## Contributing
