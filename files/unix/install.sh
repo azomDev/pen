@@ -1,49 +1,11 @@
 #!/usr/bin/env bash
 
-# Define the lines of text to add or remove
-TEXT_FOR_PEN=(
-  'alias pen=". $HOME/.pen/main.sh"'
-)
-
-# Define configuration file paths for each shell
-BASH_CONFIG_FILES=(
-  "$HOME/.bashrc"
-)
-
-ZSH_CONFIG_FILES=(
-  "$HOME/.zshrc"
-)
-
-# Define variables
 PEN_DIR="$HOME/.pen"
 TMP_DIR="/tmp"
-PEN_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/main.sh"
-# VERSION_TXT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/version.txt"
-case "$OSTYPE" in
-  linux-gnu)
-    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux/core"
-    ;;
-  darwin*)
-    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
-    ;;
-  *)
-    echo "Unsupported operating system. Exiting."
-    exit 1
-    ;;
-esac
 TMP_PEN_DIR="$TMP_DIR/pen_tmp"
+PEN_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/main.sh"
 
-# Function to handle cleanup
-cleanup() {
-    echo "Cleaning up..."
-    rm -rf "$TMP_PEN_DIR"
-}
-
-# Check if the tmp directory exists, if not, exit
-if [ ! -d "$TMP_DIR" ]; then
-    echo "/tmp directory does not exist. Aborting installation."
-    exit 1
-fi
+## CHECKING BASIC FOLDER EXISTENCE
 
 # Check if the pen directory exists, if yes, exit
 if [ -d "$PEN_DIR" ]; then
@@ -51,96 +13,138 @@ if [ -d "$PEN_DIR" ]; then
     exit 1
 fi
 
-# Create temporary directory for downloading files
-mkdir -p "$TMP_PEN_DIR"
+# Check if the tmp directory exists, if not, exit
+if [ ! -d "$TMP_DIR" ]; then
+    echo "/tmp directory does not exist. Aborting installation."
+    exit 1
+fi
 
-# Curl the main.sh script and core executable from GitHub and put them in the tmp directory
-curl -4 -s -o "$TMP_PEN_DIR/main.sh" "$PEN_SCRIPT_URL" || { echo "Failed to download main.sh. Exiting."; cleanup; exit 1; }
-# curl -o "$TMP_PEN_DIR/version.txt" "$VERSION_TXT_URL" || { echo "Failed to download version.txt. Exiting."; cleanup; exit 1; }
-curl -4 -s -o "$TMP_PEN_DIR/core" "$PEN_EXECUTABLE_URL" || { echo "Failed to download core. Exiting."; cleanup; exit 1; }
+if [ -d "$TMP_PEN_DIR" ]; then
+    # Clear all contents in TMP_PEN_DIR while keeping the directory
+    if ! rm -rf "$TMP_PEN_DIR"/*; then
+        echo "Failed to clear TMP_PEN_DIR. Exiting."
+        exit 1
+    fi
+else
+    # Create TMP_PEN_DIR if it does not exist
+    mkdir -p "$TMP_PEN_DIR" || { echo "Failed to create TMP_PEN_DIR. Exiting."; exit 1; }
+fi
 
-# Create .pen directory in the home of the user
-mkdir -p "$PEN_DIR"
 
-# Move downloaded files to the .pen directory
-mv "$TMP_PEN_DIR/"* "$PEN_DIR" || {
-    echo "Failed to move files to $PEN_DIR."
-    rm -rf "$PEN_DIR" || { echo "Catastrophic failure: Unable to delete $PEN_DIR. Manual cleanup required."; cleanup; exit 1; }
-    cleanup
+case "$OSTYPE" in
+  linux-gnu)
+    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux/core"
+    DEFAULT_SHELL="bash"
+    ;;
+  darwin*)
+    PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
+
+    # Determine macOS version
+    macos_version=$(sw_vers -productVersion | awk -F '.' '{print $1$2}')
+
+    if [[ "$macos_version" -ge 1015 ]]; then
+      # macOS Catalina (10.15) and later
+      DEFAULT_SHELL="zsh"
+    else
+      # Older macOS versions
+      PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core"
+      DEFAULT_SHELL="bash"
+    fi
+    ;;
+  *)
+    echo "Unsupported operating system. Exiting."
+    exit 1
+    ;;
+esac
+
+## DEFINE SOME FUNCTIONS
+
+handle_failure() {
+    rm -rf "$PEN_DIR" || { echo "Catastrophic failure: Unable to delete $PEN_DIR. Please manually remove this directory if necessary by running 'rm -rf $PEN_DIR' in your terminal."; exit 1; }
+    rm -rf "$TMP_PEN_DIR"
     exit 1
 }
 
-# Cleanup temporary directory
-cleanup
-
-# Make the core executable
-chmod +x "$PEN_DIR/main.sh"
-chmod +x "$PEN_DIR/core"
-
-# Create pythonVersions directory inside .pen
-mkdir -p "$PEN_DIR/python_versions"
-
-################################################################
-
-# Function to add text to configuration files (appending to the end)
 add_text() {
-  local config_files=("${!1}")
+    local shell=$1
+    local file
 
-  for file in "${config_files[@]}"; do
-    file=$(eval echo "$file")  # Resolve ~ to $HOME
+    pen_alias='alias pen=". $HOME/.pen/main.sh"'
 
-    # Create the file if it does not exist
-    if [[ ! -f "$file" ]]; then
-      echo "Configuration file $file does not exist. Creating it..."
-      touch "$file"
+    # Determine the file based on the shell
+    if [[ "$shell" == "bash" ]]; then
+        file="$HOME/.bashrc"
+    elif [[ "$shell" == "zsh" ]]; then
+        file="$HOME/.zshrc"
+    else
+        echo "Unsupported shell: $shell. If this message is printed, please open an issue on GitHub about it."
+        handle_failure
     fi
 
     if [[ -f "$file" ]]; then
-      echo "Appending text to $file..."
-      # Add a newline before adding the new text
-      echo >> "$file"
-      # Write all lines of text to the file
-      for line in "${TEXT_FOR_PEN[@]}"; do
-        echo "$line" >> "$file"
-      done
+        # Append a newline and the string to the file
+        echo -e "\n$pen_alias" >> "$file" || handle_failure
     else
-      echo "Configuration file $file does not exist, and failed to create it."
+        # Prompt the user to create the file if it doesn't exist
+        read -p "File $file does not exist. Would you like to create it? (Y/n) " choice || handle_failure
+        if [[ "$choice" == "n" || "$choice" == "N" ]]; then
+            echo "File was not created. Exiting."
+        else
+            touch "$file" || handle_failure
+            echo -e "\n$pen_alias" >> "$file" || handle_failure
+        fi
     fi
-  done
 }
 
-# Determine which shell configuration file(s) to modify
-bashrc_exists=false
-zshrc_exists=false
 
-if [[ -f "$HOME/.bashrc" ]]; then
-  bashrc_exists=true
+## ASK ABOUT DEFAULT SHELL
+
+BOLD=$(tput bold)
+RESET=$(tput sgr0)
+CYAN=$(tput setaf 6)
+
+echo -e "Current default shell: ${CYAN}${BOLD}$DEFAULT_SHELL${RESET}"
+
+read -p "Change the default shell? (Enter 'bash', 'zsh', or press Enter to keep current): " chosen_shell
+
+## DOWNLOAD FILES
+
+if ! curl -4 --fail -s -o "$TMP_PEN_DIR/main.sh" "$PEN_SCRIPT_URL"; then
+  echo "Failed to download main.sh. Exiting."
+  exit 1
 fi
 
-if [[ -f "$HOME/.zshrc" ]]; then
-  zshrc_exists=true
+# Attempt to download core; handle errors if the download fails
+if ! curl -4 --fail -s -o "$TMP_PEN_DIR/core" "$PEN_EXECUTABLE_URL"; then
+  echo "Failed to download core. Exiting."
+  exit 1
 fi
 
-if $bashrc_exists && $zshrc_exists; then
-  CONFIG_FILES=("${BASH_CONFIG_FILES[@]}" "${ZSH_CONFIG_FILES[@]}")
-elif $bashrc_exists; then
-  CONFIG_FILES=("${BASH_CONFIG_FILES[@]}")
-elif $zshrc_exists; then
-  CONFIG_FILES=("${ZSH_CONFIG_FILES[@]}")
+## CREATE AND USE MAIN PEN DIRECTORY
+
+mkdir -p "$PEN_DIR" || { echo "Failed to create PEN_DIR. Exiting."; exit 1; }
+
+mv "$TMP_PEN_DIR/"* "$PEN_DIR" || {
+    echo "Failed to move files to $PEN_DIR."
+    handle_failure
+}
+
+chmod +x "$PEN_DIR/main.sh" "$PEN_DIR/core" || { echo "Failed to make files executable. Exiting."; handle_failure; }
+
+mkdir -p "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions directory. Exiting."; handle_failure; }
+
+## ADD LINE TO SHELL CONFIG
+
+if [[ -z "$chosen_shell" ]]; then
+    add_text "$DEFAULT_SHELL"
+elif [[ "$chosen_shell" == "bash" || "$chosen_shell" == "zsh" ]]; then
+    add_text "$chosen_shell"
 else
-  # No .bashrc or .zshrc found
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Creating .zshrc for macOS."
-    touch "$HOME/.zshrc"
-    CONFIG_FILES=("${ZSH_CONFIG_FILES[@]}")
-  else
-    echo "No .bashrc or .zshrc found. Please create one manually."
-    exit 1
-  fi
+    echo "Invalid input. Please enter 'bash', 'zsh', or leave empty to keep the default."
+    handle_failure
 fi
 
-# Add text to the selected configuration file(s)
-echo "Adding text to configuration file(s)..."
-add_text CONFIG_FILES[@]
-
-echo "Installation complete. Please restart your terminal session to apply the changes."
+echo -e "\033[1;32mINSTALLATION COMPLETE.\033[0m"
+echo "To apply the changes, you can:"
+echo "1. Reload the configuration file with: source ~/.bashrc"
+echo "2. Close this terminal and open a new one."
