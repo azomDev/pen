@@ -2,6 +2,8 @@
 
 **Pen** is a tool for managing Python environments with different Python versions. (v0.3.0)
 
+NOTE: THIS IS STILL AND DEVELOPPEMENT AND DOES NOT CURRENTLY WORK
+
 ## Features
 
 - Create and manage virtual environments with specified Python versions.
