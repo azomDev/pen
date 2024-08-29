@@ -16,7 +16,7 @@ Supported Shells:
 - Zsh
 
 ### Fast Install
-
+Run this in your terminal:
 ```
 bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.sh")
 ```
