@@ -6,7 +6,6 @@ pub fn create_env(py_version: &str) {
     utils::assert_major_minor_patch(&py_version);
 
     let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
-    // todo: we need to check if env_dir already exists as a directory. If yes exit. On error exit. If it is found to be a file, exit with error saying theres a file with the name already
 
     match fs::metadata(&env_dir) {
         Ok(metadata) => {
@@ -16,9 +15,13 @@ pub fn create_env(py_version: &str) {
                     "env directory {} already exists in current directory",
                     &env_dir.display()
                 );
-                process::exit(0);
+                process::exit(1);
             } else {
-                // todo there is a file with the same path as where the dir will be, delete it
+                eprintln!(
+                    "There is already a file named {} in the current directory, aborting",
+                    ENV_DIR_NAME
+                );
+                process::exit(1);
             }
         }
         Err(e) => {

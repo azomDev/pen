@@ -68,21 +68,11 @@ handle_failure() {
     exit 1
 }
 
+trap 'handle_failure; exit 1' INT HUP TERM QUIT ABRT USR1 USR2
+
 add_text() {
-    local shell=$1
-    local file
-
-    pen_alias='alias pen=". $HOME/.pen/main.sh"'
-
-    # Determine the file based on the shell
-    if [[ "$shell" == "bash" ]]; then
-        file="$HOME/.bashrc"
-    elif [[ "$shell" == "zsh" ]]; then
-        file="$HOME/.zshrc"
-    else
-        echo "Unsupported shell: $shell. If this message is printed, please open an issue on GitHub about it."
-        handle_failure
-    fi
+    local file=$1
+    local pen_alias='alias pen=". $HOME/.pen/main.sh"'
 
     if [[ -f "$file" ]]; then
         # Append a newline and the string to the file
@@ -92,6 +82,7 @@ add_text() {
         read -p "File $file does not exist. Would you like to create it? (Y/n) " choice || handle_failure
         if [[ "$choice" == "n" || "$choice" == "N" ]]; then
             echo "File was not created. Exiting."
+            handle_failure
         else
             touch "$file" || handle_failure
             echo -e "\n$pen_alias" >> "$file" || handle_failure
@@ -99,17 +90,8 @@ add_text() {
     fi
 }
 
-# todo mabye add text to the config before copying files to .pen because theres a question in the add text which could be canceled and make the .pen dir just sit there
-
-
 ## ASK ABOUT DEFAULT SHELL
-
-BOLD=$(tput bold)
-RESET=$(tput sgr0)
-CYAN=$(tput setaf 6)
-
-echo -e "Current default shell: ${CYAN}${BOLD}$DEFAULT_SHELL${RESET}"
-
+echo -e "Current default shell: \033[36m\033[1m$DEFAULT_SHELL\033[0m"
 read -p "Change the default shell? (Enter 'bash', 'zsh', or press Enter to keep current): " chosen_shell
 
 ## DOWNLOAD FILES
@@ -140,16 +122,35 @@ mkdir -p "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions d
 
 ## ADD LINE TO SHELL CONFIG
 
+# Determine the file based on the shell
+
 if [[ -z "$chosen_shell" ]]; then
-    add_text "$DEFAULT_SHELL"
-elif [[ "$chosen_shell" == "bash" || "$chosen_shell" == "zsh" ]]; then
-    add_text "$chosen_shell"
+    if [[ "$DEFAULT_SHELL" == "bash" ]]; then
+        file="$HOME/.bashrc"
+    elif [[ "$DEFAULT_SHELL" == "zsh" ]]; then
+        file="$HOME/.zshrc"
+    else
+        echo "Unsupported shell: $shell. If this message is printed, please open an issue on GitHub about it."
+        handle_failure
+    fi
+elif [[ "$chosen_shell" == "bash" ]]; then
+    config_file="$HOME/.bashrc"
+elif [[ "$chosen_shell" == "zsh" ]]; then
+    config_file="$HOME/.zshrc"
 else
     echo "Invalid input. Please enter 'bash', 'zsh', or leave empty to keep the default."
     handle_failure
 fi
 
+add_text "$config_file"
+
+
 echo -e "\033[1;32mINSTALLATION COMPLETE.\033[0m"
 echo "To apply the changes, you can:"
-echo "1. Reload the configuration file with: source ~/.bashrc"
+if [[ "$config_file" == "$HOME/.bashrc" ]]; then
+    echo "1. Reload the configuration file with: source ~/.bashrc"
+elif [[ "$config_file" == "$HOME/.zshrc" ]]; then
+    echo "1. Reload the configuration file with: source ~/.zshrc"
+fi
+
 echo "2. Close this terminal and open a new one."

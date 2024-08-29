@@ -148,7 +148,7 @@ fn remove_alias_from_all_config_files(config_files: Vec<&PathBuf>) {
                             }
                         }
                         Err(_) => {
-                            // todo
+                            eprintln!("error message")
                         }
                     };
                     process::exit(1);

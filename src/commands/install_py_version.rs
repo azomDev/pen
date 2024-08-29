@@ -1,5 +1,5 @@
 use crate::{py_install_algorithms, utils, TMP_DIR};
-use std::{path::PathBuf, process};
+use std::{io, path::PathBuf, process};
 
 pub fn install_py_version(py_version: &str) {
     utils::assert_major_minor_patch(&py_version);
@@ -44,6 +44,11 @@ pub fn install_py_version(py_version: &str) {
 }
 
 fn is_py_version_installed(py_version_dir: &PathBuf) -> bool {
+    if let Ok(exists) = py_version_dir.try_exists() {
+        if !exists {
+            return false;
+        }
+    }
     let python_bin = py_version_dir.join("bin/python3");
     match process::Command::new(python_bin)
         .stdin(process::Stdio::null())
@@ -54,12 +59,18 @@ fn is_py_version_installed(py_version_dir: &PathBuf) -> bool {
     {
         Ok(status) => status.success(),
         Err(e) => {
-            eprintln!(
-                "There might be a problem with {}: {}",
-                py_version_dir.display(),
-                e
-            );
-            process::exit(1);
+            if e.kind() == io::ErrorKind::NotFound {
+                // Python binary not found, return false
+                false
+            } else {
+                // Other errors, print the error and exit
+                eprintln!(
+                    "There might be a problem with {}: {}",
+                    py_version_dir.display(),
+                    e
+                );
+                process::exit(1);
+            }
         }
     }
 }

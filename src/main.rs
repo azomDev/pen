@@ -13,7 +13,7 @@ mod utils;
 // spec_vals.push(format!("[aliases: {all_als}]"));
 
 pub const ENV_DIR_NAME: &str = "env";
-pub const UPDATE_SCRIPT_URL: &str = "aaa"; // todo put the actual url
+// pub const UPDATE_SCRIPT_URL: &str = "aaa";
 
 lazy_static! {
     pub static ref HOME_DIR: PathBuf = dirs::home_dir().expect("Failed to get home directory");
@@ -28,13 +28,11 @@ lazy_static! {
     pub static ref TMP_DIR: PathBuf = PEN_DIR.join("temp");
     pub static ref PYTHON_VERSIONS_DIR: PathBuf = {
         let dir = PEN_DIR.join("python_versions");
-        // todo FINAL actually if dir exists and is not dir, idk panic. If it already exists cool. If it does not exist just create it silently
-        if !dir.exists() || !dir.is_dir() {
-            eprintln!(
-                "Weird, the directory {} does not exist. Creating it...",
-                dir.display()
-            );
-            fs::create_dir(&dir).expect(&format!("Failed to create {}", dir.display()));
+        // todo if you cant check if it exist or if it is a dir (use the functions that can catch errors) just exit the program with an error message
+        if !dir.exists() {
+            if !dir.is_dir() {
+                fs::create_dir(&dir).expect(&format!("Failed to create {}", dir.display()));
+            }
         }
         return dir;
     };
@@ -46,7 +44,7 @@ lazy_static! {
 fn main() {
     let matches = Command::new("pen")
         .bin_name("pen")
-        .version("0.3.0")
+        .version("0.4.0")
         .about("pen is a tool for managing Python environments with different Python versions.")
         .subcommand_required(true)
         .arg_required_else_help(true)

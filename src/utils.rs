@@ -101,10 +101,13 @@ pub fn confirm_action(prompt: &str) -> bool {
 /// * **`curl` Command Failure**: If the `curl` command fails to execute (e.g., `curl` is not installed or an execution error occurs).
 /// * **File Not Found**: After the `curl` command completes, if the downloaded file is not found at `file_path` (i.e., the file does not exist or is not a regular file).
 pub fn download_file(file_url: &str, file_path: &PathBuf) {
-    if fs::remove_file(file_path).is_err() {
-        eprintln!("Unable to remove file to download the new one, exiting");
-        process::exit(1);
+    if let Err(err) = fs::remove_file(file_path) {
+        if err.kind() != io::ErrorKind::NotFound {
+            eprintln!("Unable to remove file: {}", err);
+            process::exit(1);
+        }
     }
+
     let curl_status = process::Command::new("curl")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())

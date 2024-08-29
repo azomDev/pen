@@ -29,12 +29,6 @@ deactivate_env() {
   fi
 }
 
-# Check if more than one argument is passed to the script
-if [ "$#" -gt 1 ]; then
-  $HOME/.pen/core "$@"
-  exit
-fi
-
 case "$1" in
   activate | a)
     activate_env

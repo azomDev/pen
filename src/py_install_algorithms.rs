@@ -72,6 +72,7 @@ pub fn unpack_and_install_python_version_v1(
     }
 
     println!("Compiling (this might take a few minutes)...");
+    // todo, with ubuntu, make is not preinstalled wtf
     if process::Command::new("make")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
@@ -98,11 +99,11 @@ pub fn unpack_and_install_python_version_v1(
         .success()
         == false
     {
+        // todo this triggered idk why
         println!("Failed to install Python version {}", py_version);
         process::exit(1);
     }
 
-    // todo check the rest of this file
     println!("Moving files...");
     if fs::rename(&temp_python_version_dir, &py_version_dir).is_err() {
         if utils::try_deleting_dir(&py_version_dir, None) {
