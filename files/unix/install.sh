@@ -146,11 +146,10 @@ add_text "$config_file"
 
 
 echo -e "\033[1;32mINSTALLATION COMPLETE.\033[0m"
-echo "To apply the changes, you can:"
+echo "To complete the setup, please follow one of these steps:"
 if [[ "$config_file" == "$HOME/.bashrc" ]]; then
     echo "1. Reload the configuration file with: source ~/.bashrc"
 elif [[ "$config_file" == "$HOME/.zshrc" ]]; then
     echo "1. Reload the configuration file with: source ~/.zshrc"
 fi
-
 echo "2. Close this terminal and open a new one."
