@@ -2,8 +2,6 @@
 
 **Pen** is a tool for managing Python environments with different Python versions. (v0.4.0)
 
-NOTE: THIS IS STILL IN DEVELOPPEMENT AND DOES NOT CURRENTLY WORK
-
 ## Features
 
 - Create and manage virtual environments with specified Python versions.
@@ -11,9 +9,11 @@ NOTE: THIS IS STILL IN DEVELOPPEMENT AND DOES NOT CURRENTLY WORK
 - Simple command interface for streamlined usage.
 
 ## Installation
-Note that Windows is not supported (for now)\
-Same for MacOS, although it just needs building, which I am working on\
-Only bash and zsh are supported (for now)
+Currently, this software supports only Linux environments. Windows and macOS are not supported at this time. However, macOS support is under development and will be available soon.
+
+Supported Shells:
+- Bash
+- Zsh
 
 ### Fast Install
 
@@ -21,31 +21,10 @@ Only bash and zsh are supported (for now)
 bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/install.sh")
 ```
 
-### Manual Install (Without Building)
+### Manual Install
 
-1. Clone the repository and navigate to the directory:
-    ```bash
-    git clone https://github.com/azomDev/pen.git
-    cd pen
-    ```
-
-2. Set up the environment:
-    ```bash
-    mkdir ~/.pen
-    mv files/unix/core ~/.pen/core
-    mv files/unix/main.sh ~/.pen/main.sh
-    printf '\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
-    ```
-
-3. Clean up and apply changes:
-    ```bash
-    cd ..
-    rm -rf pen/
-    source ~/.bashrc
-    ```
-
-### Manual Building
-
+For shells other than Bash, change `~/.bashrc` to the according config file for your shell (for example: `~/.zshrc` for Zsh).
+ 
 1. Clone the repository and navigate to the directory:
     ```bash
     git clone https://github.com/azomDev/pen.git
@@ -121,6 +100,7 @@ bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/files/unix/i
 
 - **`help`**: Show help for Pen or a specific command.
     ```bash
+    pen
     pen help
     pen help create
     ```
