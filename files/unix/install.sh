@@ -126,9 +126,9 @@ mkdir -p "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions d
 
 if [[ -z "$chosen_shell" ]]; then
     if [[ "$DEFAULT_SHELL" == "bash" ]]; then
-        file="$HOME/.bashrc"
+        config_file="$HOME/.bashrc"
     elif [[ "$DEFAULT_SHELL" == "zsh" ]]; then
-        file="$HOME/.zshrc"
+        config_file="$HOME/.zshrc"
     else
         echo "Unsupported shell: $shell. If this message is printed, please open an issue on GitHub about it."
         handle_failure
