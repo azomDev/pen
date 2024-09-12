@@ -4,7 +4,6 @@ use std::{fs, path::PathBuf, process};
 
 // todo everywhere in the project streamline how the prinln and the eprinln are written
 
-// todo finish and check everything in this file
 pub fn update_pen() {
     println!("Updating pen...");
 

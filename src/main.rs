@@ -39,8 +39,6 @@ lazy_static! {
     pub static ref PYTHON_VERSION_INFO_DIR: PathBuf = PEN_DIR.join("python_version_info");
 }
 
-// todo pen create with no version means the globally installed version
-
 fn main() {
     let matches = Command::new("pen")
         .bin_name("pen")
@@ -49,12 +47,13 @@ fn main() {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .help_template("{about} (v{version})\n\n{usage-heading} {usage}\n\n{all-args}")
+        .subcommand(Command::new("env").about("").long_about("").subcommand(Command::new("create").arg(Arg::new("env_name").help("").required(false).index(1))))
+
         .subcommand(Command::new("create")
             .visible_alias("c")
-            .styles(clap::builder::styling::Styles::styled()
-            .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD)
-            // todo add style for all commands, this is not important in the beginning tho
-        )
+        //     .styles(clap::builder::styling::Styles::styled()
+        //     .header(clap::builder::styling::AnsiColor::Green.on_default() | clap::builder::styling::Effects::BOLD)
+        // )
             .about("Create a virtual environment with a Python version")
             .long_about("Create a new virtual environment with the specified Python version in the current directory")
             .arg(Arg::new("pyversion")

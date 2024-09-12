@@ -1,8 +1,6 @@
 use crate::{utils, TMP_DIR};
 use std::{fs, path::PathBuf, process};
 
-// todo print where it is at in the process of this function
-
 pub fn unpack_and_install_python_version_v1(
     py_version: &str,
     py_version_dir: &PathBuf,
@@ -72,7 +70,6 @@ pub fn unpack_and_install_python_version_v1(
     }
 
     println!("Compiling (this might take a few minutes)...");
-    // todo, with ubuntu, make is not preinstalled wtf
     if process::Command::new("make")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
@@ -99,7 +96,6 @@ pub fn unpack_and_install_python_version_v1(
         .success()
         == false
     {
-        // todo this triggered idk why
         println!("Failed to install Python version {}", py_version);
         process::exit(1);
     }
