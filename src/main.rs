@@ -98,6 +98,8 @@ fn main() {
 
         .get_matches();
 
+    utils::assert_dependencies();
+
     // clear the temp file each time a command is executed
     if !utils::try_deleting_dir(&*TMP_DIR, None) {
         eprintln!("Failed to clear temp directory, exiting");

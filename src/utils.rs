@@ -173,3 +173,26 @@ pub fn try_deleting_dir(dir_path: &PathBuf, delete_path: Option<&PathBuf>) -> bo
         Err(_) => false,
     }
 }
+
+pub fn assert_dependencies() {
+    let dependencies = ["curl", "tar", "make"];
+
+    for dep in dependencies {
+        // Runs the command with `--help`
+        let unknown_status = process::Command::new(dep)
+            .stdin(process::Stdio::null())
+            .stdout(process::Stdio::null())
+            .stderr(process::Stdio::null())
+            .arg("--help")
+            .status();
+
+        if let Ok(status) = unknown_status {
+            if status.success() {
+                continue; // if that dependency exists, check the next one
+            }
+        }
+
+        eprintln!("{} is not installed", dep);
+        process::exit(1);
+    }
+}
