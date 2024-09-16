@@ -3,8 +3,6 @@ use crate::{utils, TMP_DIR, UPDATE_SCRIPT_URL};
 use std::os::unix::fs::PermissionsExt;
 use std::{fs, path::PathBuf, process};
 
-// todo check file
-
 pub fn update_pen() {
     println!("Updating pen...");
 
