@@ -1,4 +1,4 @@
-use crate::{py_install_algorithms, utils::{self, abort}, TMP_DIR};
+use crate::{py_install_algorithms, utils::{self, abort, catastrophic_failure}, TMP_DIR};
 use std::process;
 
 // todo add docs here since it is used by create_env.rs
@@ -46,9 +46,11 @@ pub fn install_py_version(py_version: &str) {
             println!("Python version {} installed successfully.", &py_version);
             return;
         },
-        Ok(_) => {},
+        Ok(_) => eprintln!("Error: Failed to verify if Python version is installed"),
         Err(e) => eprintln!("Error: Failed to verify if Python version is installed: {}", e)
     }
-    // todo if it fails, we should try deleting what has been done. If that works nice, if it does not then call catastrophic_failure
-    abort("Failed to install python version", None);
+    match utils::try_deleting_dir(&py_version_dir) {
+        Ok(()) => process::exit(1),
+        Err(e) => catastrophic_failure("idk yet", Some(e))
+    }
 }
