@@ -1,5 +1,7 @@
-use crate::{utils, HOME_DIR, PEN_DIR};
+use crate::{utils::{self, abort}, HOME_DIR, PEN_DIR};
 use std::{fs, path::PathBuf, process};
+
+// todo check all this file
 
 pub fn uninstall() {
     if !utils::confirm_action("Are you sure you want to uninstall pen? (y/N)") {
@@ -11,14 +13,13 @@ pub fn uninstall() {
 
     let tmp_dir = PathBuf::from("/tmp/pen_backup");
 
-    if !utils::try_deleting_dir(&tmp_dir, None) {
-        eprintln!("Error deleting {}, aborting", tmp_dir.display());
-        process::exit(1);
+    if let Err(e) = utils::try_deleting_dir(&tmp_dir) {
+        abort(&format!("Error deleting {}", tmp_dir.display()), Some(e))
     }
 
     let config_files = [HOME_DIR.join(".bashrc"), HOME_DIR.join(".zshrc")];
 
-    let valid_config_files = get_valid_config_files(&config_files);
+    let valid_config_files = get_existing_config_files(&config_files);
 
     remove_alias_from_all_config_files(valid_config_files);
 
@@ -39,8 +40,8 @@ pub fn uninstall() {
     println!("Uninstallation complete.");
 }
 
-fn get_valid_config_files(config_files: &[PathBuf]) -> Vec<&PathBuf> {
-    let mut valid_files: Vec<&PathBuf> = Vec::new();
+fn get_existing_config_files(config_files: &[PathBuf]) -> Vec<&PathBuf> {
+    let mut existing_files: Vec<&PathBuf> = Vec::new();
 
     for file_path in config_files {
         if let Ok(exists) = file_path.try_exists() {
@@ -67,7 +68,7 @@ fn get_valid_config_files(config_files: &[PathBuf]) -> Vec<&PathBuf> {
                     process::exit(1);
                 }
 
-                valid_files.push(file_path);
+                existing_files.push(file_path);
             }
             Err(_) => {
                 eprintln!(
@@ -79,7 +80,7 @@ fn get_valid_config_files(config_files: &[PathBuf]) -> Vec<&PathBuf> {
         }
     }
 
-    return valid_files;
+    return existing_files;
 }
 
 fn remove_alias_from_all_config_files(config_files: Vec<&PathBuf>) {

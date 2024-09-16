@@ -4,7 +4,7 @@ mod delete_py_version;
 mod install_py_version;
 mod list_py_versions;
 mod uninstall_pen;
-// mod update_pen;
+mod update_pen;
 
 pub use create_env::create_env;
 pub use delete_env::delete_env;

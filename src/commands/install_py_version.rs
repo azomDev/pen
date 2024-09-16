@@ -1,25 +1,25 @@
-use crate::{py_install_algorithms, utils, TMP_DIR};
-use std::{io, path::PathBuf, process};
+use crate::{py_install_algorithms, utils::{self, abort}, TMP_DIR};
+use std::process;
 
 pub fn install_py_version(py_version: &str) {
     utils::assert_major_minor_patch(&py_version);
 
     let py_version_dir = utils::get_version_path(&py_version);
 
-    if is_py_version_installed(&py_version_dir) {
-        println!("Directory {} already exists", py_version_dir.display());
-        return;
+    match py_version_dir.try_exists() {
+        Ok(true) => {
+            println!("{} already exists", py_version_dir.display());
+            return;
+        },
+        Ok(false) => {},
+        Err(e) => {
+            abort(&format!("Failed to check if {} already exists", py_version_dir.display()), Some(e));
+        }
     }
 
     println!("Installing Python version: {}", &py_version);
-
     let temp_tarball_path = TMP_DIR.join("temp_tarball.tgz");
-
-    let python_tarball_url = format!(
-        "https://www.python.org/ftp/python/{}/Python-{}.tgz",
-        &py_version, &py_version
-    );
-
+    let python_tarball_url = format!("https://www.python.org/ftp/python/{}/Python-{}.tgz", &py_version, &py_version);
     println!("Downloading Python installation files.");
     utils::download_file(&python_tarball_url, &temp_tarball_path);
 
@@ -31,24 +31,7 @@ pub fn install_py_version(py_version: &str) {
     );
 
     println!("Verifying Python install.");
-    if !is_py_version_installed(&py_version_dir) {
-        if utils::try_deleting_dir(&py_version_dir, Some(&TMP_DIR.join("deleted_python_temp"))) {
-            eprintln!("Failed to install python version");
-        } else {
-            eprintln!("some catastrophic message idk");
-        }
-        process::exit(1);
-    }
 
-    println!("Python version {} installed successfully.", &py_version);
-}
-
-fn is_py_version_installed(py_version_dir: &PathBuf) -> bool {
-    if let Ok(exists) = py_version_dir.try_exists() {
-        if !exists {
-            return false;
-        }
-    }
     let python_bin = py_version_dir.join("bin/python3");
     match process::Command::new(python_bin)
         .stdin(process::Stdio::null())
@@ -57,20 +40,12 @@ fn is_py_version_installed(py_version_dir: &PathBuf) -> bool {
         .arg("--version")
         .status()
     {
-        Ok(status) => status.success(),
-        Err(e) => {
-            if e.kind() == io::ErrorKind::NotFound {
-                // Python binary not found, return false
-                false
-            } else {
-                // Other errors, print the error and exit
-                eprintln!(
-                    "There might be a problem with {}: {}",
-                    py_version_dir.display(),
-                    e
-                );
-                process::exit(1);
-            }
-        }
+        Ok(status) if status.success() => {
+            println!("Python version {} installed successfully.", &py_version);
+            return;
+        },
+        Ok(_) => {},
+        Err(e) => eprintln!("Failed to verify if Python version is installed: {}", e)
     }
+    abort("Failed to install python version", None);
 }

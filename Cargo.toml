@@ -9,7 +9,5 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.8", features = ["derive"] }
-dirs = "5.0.1"
-regex = "1.10.5"
-# reqwest = { version = "0.12.5", features = ["blocking"] }
 lazy_static = "1.5"
+home = "0.5.9"

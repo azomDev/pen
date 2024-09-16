@@ -2,8 +2,10 @@
 extern crate lazy_static;
 
 use clap::{Arg, Command};
-use dirs;
-use std::{fs, path::PathBuf, process};
+use home;
+use utils::abort;
+use std::path::PathBuf;
+
 mod commands;
 mod py_install_algorithms;
 mod utils;
@@ -12,31 +14,18 @@ mod utils;
 // line 1059
 // spec_vals.push(format!("[aliases: {all_als}]"));
 
-pub const ENV_DIR_NAME: &str = "env";
-// pub const UPDATE_SCRIPT_URL: &str = "aaa";
+// global constants
+pub const ENV_DIR_NAME: &str = ".venv";
+pub const UPDATE_SCRIPT_URL: &str = "todo";
 
 lazy_static! {
-    pub static ref HOME_DIR: PathBuf = dirs::home_dir().expect("Failed to get home directory");
-    pub static ref PEN_DIR: PathBuf = {
-        let dir = HOME_DIR.join(".pen");
-        if !dir.exists() || !dir.is_dir() {
-            eprintln!("Error: {} directory does not exist", dir.display());
-            process::exit(1);
-        }
-        return dir;
+    pub static ref HOME_DIR: PathBuf = match home::home_dir() {
+        Some(dir) => dir,
+        None => abort("Failed to get home directory", None)
     };
+    pub static ref PEN_DIR: PathBuf = HOME_DIR.join(".pen");
     pub static ref TMP_DIR: PathBuf = PEN_DIR.join("temp");
-    pub static ref PYTHON_VERSIONS_DIR: PathBuf = {
-        let dir = PEN_DIR.join("python_versions");
-        // todo if you cant check if it exist or if it is a dir (use the functions that can catch errors) just exit the program with an error message
-        if !dir.exists() {
-            if !dir.is_dir() {
-                fs::create_dir(&dir).expect(&format!("Failed to create {}", dir.display()));
-            }
-        }
-        return dir;
-    };
-    pub static ref PYTHON_VERSION_INFO_DIR: PathBuf = PEN_DIR.join("python_version_info");
+    pub static ref PYTHON_VERSIONS_DIR: PathBuf = PEN_DIR.join("python_versions");
 }
 
 fn main() {
@@ -47,7 +36,6 @@ fn main() {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .help_template("{about} (v{version})\n\n{usage-heading} {usage}\n\n{all-args}")
-        .subcommand(Command::new("env").about("").long_about("").subcommand(Command::new("create").arg(Arg::new("env_name").help("").required(false).index(1))))
 
         .subcommand(Command::new("create")
             .visible_alias("c")
@@ -79,6 +67,12 @@ fn main() {
                 .help("Specify the Python version to delete (to delete the virtual environement, run the command without an argument")
                 .required(false)
                 .index(1)))
+        .subcommand(Command::new("update")
+            .about("Update pen")
+            .long_about("Update pen to the latest version, if available"))
+        .subcommand(Command::new("uninstall")
+            .about("Uninstall pen")
+            .long_about("Completely uninstall pen from the computer (does not include virtual environements)"))
 
         // activate and deactivate subcommands will never happen in the rust code, so this is used for doc and help messages
         .subcommand(Command::new("activate")
@@ -89,26 +83,12 @@ fn main() {
             .about("Deactivate the virtual environment")
             .visible_alias("d"))
 
-        .subcommand(Command::new("update")
-            .about("Update pen")
-            .long_about("Update pen to the latest version, if available"))
-        .subcommand(Command::new("uninstall")
-            .about("Uninstall pen")
-            .long_about("Completely uninstall pen from the computer (does not include virtual environements)"))
-
         .get_matches();
 
-    utils::assert_dependencies();
-
-    // clear the temp file each time a command is executed
-    if !utils::try_deleting_dir(&*TMP_DIR, None) {
-        eprintln!("Failed to clear temp directory, exiting");
-        process::exit(1);
-    }
-    if fs::create_dir(&*TMP_DIR).is_err() {
-        eprintln!("Failed to create temp directory, exiting");
-        process::exit(1);
-    }
+    let dependencies = vec!["curl", "tar", "make"];
+    utils::assert_dependencies(dependencies);
+    utils::assert_global_paths();
+    utils::clear_temp();
 
     match matches.subcommand() {
         Some(("create", args)) => {
