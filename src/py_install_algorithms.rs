@@ -1,36 +1,23 @@
-use crate::{utils, TMP_DIR};
+use crate::{utils::{self, abort}, TMP_DIR};
 use std::{fs, path::PathBuf, process};
 
-pub fn unpack_and_install_python_version_v1(
-    py_version: &str,
-    py_version_dir: &PathBuf,
-    temp_tarball_path: &PathBuf,
-) {
-    let temp_python_version_dir = TMP_DIR.join("temp_python_version_download");
-
+pub fn unpack_and_install_python_version_v1(py_version: &str, py_version_dir: &PathBuf, temp_tarball_path: &PathBuf) {
+    // Preparing directories
     let temp_extract_path_dir = TMP_DIR.join("temp_python_extract");
-
-    if !utils::try_deleting_dir(&temp_python_version_dir, None) {
-        eprintln!(
-            "Failed to delete {}, exiting",
-            temp_python_version_dir.display()
-        )
+    let temp_python_version_dir = TMP_DIR.join("temp_python_version_download");
+    if let Err(e) = utils::try_deleting_dir(&temp_python_version_dir) {
+        abort(&format!("Failed to delete {}", temp_python_version_dir.display()), Some(e));
+    }
+    if let Err(e) = utils::try_deleting_dir(&temp_extract_path_dir) {
+        abort(&format!("Failed to delete {}", temp_extract_path_dir.display()), Some(e));
+    }
+    if let Err(e) = fs::create_dir(&temp_extract_path_dir) {
+        abort("Failed to create temp extract directory", Some(e));
     }
 
-    if !utils::try_deleting_dir(&temp_extract_path_dir, None) {
-        eprintln!(
-            "Failed to delete {}, exiting",
-            temp_extract_path_dir.display()
-        )
-    }
-
-    if fs::create_dir(&temp_extract_path_dir).is_err() {
-        eprintln!("Failed to create temp extract directory");
-        process::exit(1);
-    }
     println!("Extracting tarball...");
-    // Extract the tarball
-    if process::Command::new("tar")
+
+    match process::Command::new("tar")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
         .stderr(process::Stdio::null())
@@ -39,77 +26,66 @@ pub fn unpack_and_install_python_version_v1(
         .arg("-C")
         .arg(&temp_extract_path_dir)
         .status()
-        .expect("Failed to execute tar")
-        .success()
-        == false
     {
-        println!("Failed to extract Python version {}", py_version);
-        process::exit(1);
+        Ok(status) if status.success() => (),
+        Ok(_) => abort(&format!("Failed to extract Python version {}", py_version), None),
+        Err(e) => abort(&format!("Failed to extract Python version {}", py_version), Some(e)),
     }
 
-    // Configure and install Python
+    println!("Configuring Python...");
+
     let source_name = format!("Python-{}", py_version);
     let source_dir = temp_extract_path_dir.join(PathBuf::from(source_name));
-    println!("Configuring Python...");
-    if process::Command::new("./configure")
+    match process::Command::new("./configure")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
         .stderr(process::Stdio::null())
         .current_dir(&source_dir)
-        .arg(format!(
-            "--prefix={}",
-            temp_python_version_dir.to_str().unwrap()
-        ))
+        .arg(format!("--prefix={}", temp_python_version_dir.display()))
         .status()
-        .expect("Failed to execute configure")
-        .success()
-        == false
     {
-        println!("Failed to configure Python version {}", py_version);
-        process::exit(1);
+        Ok(status) if status.success() => (),
+        Ok(_) => abort(&format!("Failed to configure Python version {}", py_version), None),
+        Err(e) => abort(&format!("Failed to configure Python version {}", py_version), Some(e)),
     }
 
+
     println!("Compiling (this might take a few minutes)...");
-    if process::Command::new("make")
+
+    match process::Command::new("make")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
         .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .status()
-        .expect("Failed to execute make")
-        .success()
-        == false
     {
-        println!("Failed to make Python version {}", py_version);
-        process::exit(1);
+        Ok(status) if status.success() => (),
+        Ok(_) => abort(&format!("Failed to make Python version {}", py_version), None),
+        Err(e) => abort(&format!("Failed to make Python version {}", py_version), Some(e)),
     }
 
     println!("Finishing Build...");
-    if process::Command::new("make")
+
+    match process::Command::new("make")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
         .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .arg("install")
         .status()
-        .expect("Failed to execute make install")
-        .success()
-        == false
     {
-        println!("Failed to install Python version {}", py_version);
-        process::exit(1);
+        Ok(status) if status.success() => (),
+        Ok(_) => abort(&format!("Failed to install Python version {}", py_version), None),
+        Err(e) => abort(&format!("Failed to install Python version {}", py_version), Some(e)),
     }
 
     println!("Moving files...");
+
     if fs::rename(&temp_python_version_dir, &py_version_dir).is_err() {
-        if utils::try_deleting_dir(&py_version_dir, None) {
-            eprintln!(
-                "Error: Installation of Python version {} failed",
-                py_version
-            );
+        if let Err(e) = utils::try_deleting_dir(&py_version_dir) {
+            abort(&format!("catastrophic message idk {}", py_version), Some(e));
         } else {
-            eprintln!("catastrophic mesage idk");
+            abort(&format!("Failed to move Python version {}", py_version), None);
         }
-        process::exit(1);
     }
 }
