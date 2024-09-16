@@ -1,5 +1,5 @@
 use super::install_py_version;
-use crate::{utils::{self, abort}, ENV_DIR_NAME};
+use crate::{utils::{self, abort, catastrophic_failure}, ENV_DIR_NAME};
 use std::{path::PathBuf, process};
 
 pub fn create_env(py_version: &str) {
@@ -13,7 +13,7 @@ pub fn create_env(py_version: &str) {
         Err(e) => abort(&format!("Failed to check if {} already exists", env_dir.display()), Some(e))
     }
 
-    println!("Creating Python virtual environnement with version: {}", py_version);
+    println!("Creating Python virtual environnement with version {}", py_version);
 
     install_py_version(&py_version);
 
@@ -30,9 +30,9 @@ pub fn create_env(py_version: &str) {
         .status();
 
     fn handle_failure(env_dir: &PathBuf, err_msg: &str) -> ! {
-        eprintln!("Failed to create virtual environement, cleaning up : {}", err_msg);
-        if let Err(err) = utils::try_deleting_dir(env_dir) {
-            eprintln!("Catastrophic failure: Unable to delete {}. Manual cleanup required: {}", env_dir.display(), err);
+        eprintln!("Error: Failed to create virtual environement, cleaning up : {}", err_msg);
+        if let Err(e) = utils::try_deleting_dir(env_dir) {
+            catastrophic_failure(&format!("Unable to delete {}", env_dir.display()), Some(e));
         }
         process::exit(1);
     }

@@ -89,10 +89,9 @@ pub fn confirm_action(prompt: &str) -> bool {
 /// - This function will terminate the process if the download fails or if the file does not exist after the download.
 /// - Although the function ensures the file is downloaded, it does not verify the contents of the file.
 pub fn download_file(file_url: &str, file_path: &PathBuf) {
-    if let Err(err) = fs::remove_file(file_path) {
-        if err.kind() != io::ErrorKind::NotFound {
-            eprintln!("Unable to remove file: {}", err);
-            process::exit(1);
+    if let Err(e) = fs::remove_file(file_path) {
+        if e.kind() != io::ErrorKind::NotFound {
+            abort("Unable to remove file", Some(e));
         }
     }
 
@@ -114,8 +113,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
     }
 
     if !file_path.exists() || !file_path.is_file() {
-        eprintln!("Downloaded file was not found.");
-        process::exit(1);
+        abort("Downloaded file was not found", None);
     }
 }
 
@@ -166,22 +164,17 @@ pub fn try_deleting_dir(dir_path: &PathBuf) -> Result<(), std::io::Error> {
 /// - If any dependency is not installed, the function prints an error message and terminates the process.
 pub fn assert_dependencies(dependencies: Vec<&'static str>) {
     for dep in dependencies {
-        // Runs the command with `--help`
-        let unknown_status = process::Command::new(dep)
+        match process::Command::new(dep)
             .stdin(process::Stdio::null())
             .stdout(process::Stdio::null())
             .stderr(process::Stdio::null())
             .arg("--help")
-            .status();
-
-        if let Ok(status) = unknown_status {
-            if status.success() {
-                continue; // if that dependency exists, check the next one
-            }
+            .status()
+        {
+            Ok(status) if status.success() => continue,
+            Ok(_) => abort(&format!("{} is not installed", dep), None),
+            Err(e) => abort(&format!("Failed to check if {} is installed", dep), Some(e))
         }
-
-        eprintln!("{} is not installed", dep);
-        process::exit(1);
     }
 }
 
@@ -208,6 +201,11 @@ pub fn abort(message: &str, e: Option<io::Error>) -> ! {
     process::exit(1);
 }
 
+// todo docs and function
+pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
+    process::exit(1);
+}
+
 
 /// Clears and recreates the temporary directory.
 ///
@@ -223,23 +221,14 @@ pub fn abort(message: &str, e: Option<io::Error>) -> ! {
 pub fn clear_temp() {
     if let Err(e) = fs::remove_dir_all(&*TMP_DIR) {
         let _ = fs::create_dir(&*TMP_DIR); // this is to prevent an error loop if TMP_DIR does not exist
-        eprintln!(
-            "Error: Failed to clear directory {} : {}",
-            (*TMP_DIR).display(),
-            e
-        );
-        process::exit(1);
+        abort(&format!("Failed to clear directory {}", (*TMP_DIR).display()), Some(e))
     }
 
     if let Err(e) = fs::create_dir(&*TMP_DIR) {
-        eprintln!(
-            "Error: Failed to create directory {} : {}",
-            (*TMP_DIR).display(),
-            e
-        );
-        process::exit(1);
+        abort(&format!("Failed to create directory {}", (*TMP_DIR).display()), Some(e))
     }
 }
+
 
 // todo this function and also the docs for this function
 // todo cases where these are files and not actually directories
