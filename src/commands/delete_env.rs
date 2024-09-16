@@ -1,4 +1,4 @@
-use crate::{utils::{self, abort}, ENV_DIR_NAME};
+use crate::{utils::{self, abort, catastrophic_failure}, ENV_DIR_NAME};
 use std::{path::PathBuf, process};
 
 pub fn delete_env() {
@@ -15,7 +15,7 @@ pub fn delete_env() {
     println!("Deleting the virtual environment in the current directory");
 
     if let Err(e) = utils::try_deleting_dir(&env_dir) {
-        abort(&format!("catastrophic failure or smth {}", env_dir.display()), Some(e));
+        catastrophic_failure(&format!("idk yet {}", env_dir.display()), Some(e));
     }
 
     println!("Deletion of virual environnement {} successful", &env_dir.display());

@@ -117,7 +117,7 @@ fn main() {
             println!("{}", message);
         }
         _ => {
-            eprintln!("Unknown command");
+            abort("Unknown command", None);
         }
     }
 }

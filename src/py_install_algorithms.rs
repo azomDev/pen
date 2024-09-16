@@ -1,4 +1,4 @@
-use crate::{utils::{self, abort}, TMP_DIR};
+use crate::{utils::{self, abort, catastrophic_failure}, TMP_DIR};
 use std::{fs, path::PathBuf, process};
 
 pub fn unpack_and_install_python_version_v1(py_version: &str, py_version_dir: &PathBuf, temp_tarball_path: &PathBuf) {
@@ -83,7 +83,7 @@ pub fn unpack_and_install_python_version_v1(py_version: &str, py_version_dir: &P
 
     if fs::rename(&temp_python_version_dir, &py_version_dir).is_err() {
         if let Err(e) = utils::try_deleting_dir(&py_version_dir) {
-            abort(&format!("catastrophic message idk {}", py_version), Some(e));
+            catastrophic_failure("catastrophic message idk", Some(e));
         } else {
             abort(&format!("Failed to move Python version {}", py_version), None);
         }
