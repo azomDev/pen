@@ -7,6 +7,8 @@ pub fn update_pen() {
     println!("Updating pen...");
 
     let temp_update_script_path = TMP_DIR.join("update_script");
+    // todo add a hash to check integrity? That way if the hash is not well downloaded, anyways it very probably won't say it's ok
+    // also i'm pretty certain that it's possible to get the hash with curl without saving it to a file. Probably by changing .stdout or something like that
     utils::download_file(UPDATE_SCRIPT_URL, &temp_update_script_path);
     run_update_script(&temp_update_script_path);
 
@@ -29,16 +31,14 @@ fn run_update_script(file_path: &PathBuf) {
         abort("Failed to set file permissions", Some(e));
     }
 
-    // Try to run the script with /bin/sh
-    let status = process::Command::new("bin/sh")
+    // Try to run the script with sh
+    match process::Command::new("sh")
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
         .stderr(process::Stdio::null())
         .arg(file_path)
-        .status();
-
-    // Check if the command executed successfully
-    match status {
+        .status()
+    {
         Ok(status) if status.success() => (),
         Ok(_) => abort("Script execution failed with non-zero exit code", None),
         Err(e) => abort("Failed to execute script", Some(e))

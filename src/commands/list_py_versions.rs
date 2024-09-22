@@ -6,7 +6,7 @@ pub fn list_py_versions() {
 
     let directory_entries = match fs::read_dir(&*PYTHON_VERSIONS_DIR) {
         Ok(entries) => entries,
-        Err(e) => abort(&format!("Failed to read {}", &(*PYTHON_VERSIONS_DIR).display()), Some(e))
+        Err(e) => abort(&format!("Failed to read {}", PYTHON_VERSIONS_DIR.display()), Some(e))
     };
 
     let mut installed_versions: Vec<String> = Vec::new();

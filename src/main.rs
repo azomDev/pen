@@ -1,10 +1,7 @@
-#[macro_use]
-extern crate lazy_static;
-
 use clap::{Arg, Command};
 use home;
 use utils::abort;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::LazyLock};
 
 mod commands;
 mod py_install_algorithms;
@@ -15,18 +12,28 @@ mod utils;
 // spec_vals.push(format!("[aliases: {all_als}]"));
 
 // global constants
-pub const ENV_DIR_NAME: &str = ".venv";
-pub const UPDATE_SCRIPT_URL: &str = "todo";
+pub static ENV_DIR_NAME: &str = ".venv";
+pub static UPDATE_SCRIPT_URL: &str = "todo";
 
-lazy_static! {
-    pub static ref HOME_DIR: PathBuf = match home::home_dir() {
+pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    // todo warning home_dir can return an empty string, for now it's kinda fine because of assert_global_paths
+    return match home::home_dir() {
         Some(dir) => dir,
         None => abort("Failed to get home directory", None)
     };
-    pub static ref PEN_DIR: PathBuf = HOME_DIR.join(".pen");
-    pub static ref TMP_DIR: PathBuf = PEN_DIR.join("temp");
-    pub static ref PYTHON_VERSIONS_DIR: PathBuf = PEN_DIR.join("python_versions");
-}
+});
+
+pub static PEN_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    return HOME_DIR.join(".pen");
+});
+
+pub static TMP_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    return PEN_DIR.join(".temp");
+});
+
+pub static PYTHON_VERSIONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    return HOME_DIR.join(".python_versions");
+});
 
 fn main() {
     let matches = Command::new("pen")
@@ -85,7 +92,7 @@ fn main() {
 
         .get_matches();
 
-    let dependencies = vec!["curl", "tar", "make"];
+    let dependencies = vec!["curl", "tar", "make", "sh"];
     utils::assert_dependencies(dependencies);
     utils::assert_global_paths();
     utils::clear_temp();
