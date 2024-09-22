@@ -5,6 +5,8 @@ TMP_DIR="/tmp"
 TMP_PEN_DIR="$TMP_DIR/pen_tmp"
 PEN_SCRIPT_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/main.sh"
 
+# TODO /TMP MIGHT BE ON ANOTHER FILESYSTEM, SO DESIGN AROUND THIS
+
 ## CHECKING BASIC FOLDER EXISTENCE
 
 # Check if the pen directory exists, if yes, exit

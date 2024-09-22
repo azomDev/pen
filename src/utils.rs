@@ -132,14 +132,18 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// - If this function returns `Ok(())`, you can be certain that the directory no longer exists at the specified path.
 /// - This function is designed to handle errors and will not fail under normal circumstances.
 pub fn try_deleting_dir(dir_path: &PathBuf) -> Result<(), std::io::Error> {
+    let delete_path = TMP_DIR.join("delete_path");
+    return try_deleting_dir_to_temp(dir_path, &delete_path);
+}
+
+pub fn try_deleting_dir_to_temp(dir_path: &PathBuf, temp_dir: &PathBuf) -> Result<(), std::io::Error> {
     if let Ok(exists) = dir_path.try_exists() {
         if !exists {
             return Ok(());
         }
     }
-    let delete_path = TMP_DIR.join("delete_path");
-    fs::remove_dir_all(&delete_path)?;
-    fs::rename(&dir_path, &delete_path)?;
+    fs::remove_dir_all(&temp_dir)?;
+    fs::rename(&dir_path, &temp_dir)?;
     if dir_path.try_exists()? {
         Err(io::Error::new(
             io::ErrorKind::Other,
@@ -183,7 +187,7 @@ pub fn assert_dependencies(dependencies: Vec<&'static str>) {
 ///
 /// # Input
 /// - `message`: A string slice containing the error message to display.
-/// - `e`: An optional `io::Error` that, if provided, will be included in the error message.
+/// - `e`: An optional `io::Error` that, if provided, will be included in the error message for additional context.
 ///
 /// # Output
 /// - This function does not return. It terminates the process with an exit status of 1.
@@ -196,13 +200,33 @@ pub fn abort(message: &str, e: Option<io::Error>) -> ! {
     if let Some(error) = e {
         eprintln!("Error: {}: {}", message, error);
     } else {
-        eprintln!("{}", message);
+        eprintln!("Error: {}", message);
     }
     process::exit(1);
 }
 
-// todo docs and function
+/// Prints a critical error message and terminates the process with a status code of 1.
+///
+/// # Input
+/// - `message`: A string slice containing the critical error message to display.
+/// - `e`: An optional `io::Error` that, if provided, will be included in the error message for additional context.
+///
+/// # Output
+/// - This function does not return. It terminates the process with an exit status of 1.
+///
+/// # Things to Know
+/// - The error message is prefixed with "Catastrophic failure: " and is highlighted in bold red text to emphasize the severity.
+/// - If an `io::Error` is provided, it will be appended to the error message for additional detail.
+/// - The process will exit immediately with status code 1, indicating an error.
+/// - This function always exits and will never return.
 pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
+    const RED_BOLD: &str = "\x1b[1;31m"; // Bold red text
+    const RESET: &str = "\x1b[0m"; // Reset formatting
+    if let Some(error) = e {
+        eprintln!("{}Catastrophic failure: {}: {}{}", RED_BOLD, message, error, RESET);
+    } else {
+        eprintln!("{}Catastrophic failure: {}{}", RED_BOLD, message, RESET);
+    }
     process::exit(1);
 }
 
