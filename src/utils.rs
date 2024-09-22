@@ -254,9 +254,10 @@ pub fn clear_temp() {
 }
 
 
-// todo this function and also the docs for this function
-// todo cases where these are files and not actually directories
+// todo this function and also the docs for this function. For the doc, in the things to know, things to know is that if one of the dirs dont exist, it will pprint an error and exit.
 pub fn assert_global_paths() {
+    // todo cases where these are files and not actually directories
+    // todo this function
     match HOME_DIR.try_exists() {
         Ok(true) => (),
         Ok(false) => abort(&format!("Failed to check if {} exists", HOME_DIR.display()), None),
