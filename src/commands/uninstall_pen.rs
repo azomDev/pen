@@ -1,7 +1,7 @@
-use crate::{utils::{self, abort, catastrophic_failure}, HOME_DIR, PEN_DIR};
-use std::{fs, io, path::{Path, PathBuf}, process};
+use crate::{utils::{self, abort, catastrophic_failure}, HOME_DIR, PEN_DIR, TMP_DIR};
+use std::{fs, path::PathBuf, process};
 
-// todo check all this file
+const PEN_CONFIG_LINE: &str = "alias pen=\". $HOME/.pen/main.sh\"";
 
 pub fn uninstall() {
     if !utils::confirm_action("Are you sure you want to uninstall pen? (y/N)") {
@@ -20,8 +20,6 @@ pub fn uninstall() {
     let config_files = [HOME_DIR.join(".bashrc"), HOME_DIR.join(".zshrc")];
 
     let valid_config_files = get_existing_config_files(&config_files);
-
-    // todo check permissions and mabye other stuff to reduce the chance of "try_deleting_dir_to_temp" failing
 
     remove_alias_from_config_files(&valid_config_files);
 
@@ -44,7 +42,7 @@ fn get_existing_config_files(config_files: &[PathBuf]) -> Vec<(PathBuf, PathBuf)
     let mut existing_files = Vec::new();
 
     for file_path in config_files {
-        // todo this first match is probably not needed because metadata fetch returns Err if the path does not exist
+        // this is needed even if fetching metadata returns an error on non existence since if it does not exist, we want to continue the loop anyways
         match file_path.try_exists() {
             Ok(true) => (),
             Ok(false) => continue,
@@ -84,7 +82,7 @@ fn get_temp_edited_config(config_file: &PathBuf) -> Option<PathBuf> {
     let mut new_content = String::new();
     for line in content.lines() {
         let trimmed_line = line.trim();
-        if trimmed_line != "alias pen=\". $HOME/.pen/main.sh\"" {
+        if trimmed_line != PEN_CONFIG_LINE {
             if !new_content.is_empty() {
                 new_content.push('\n');
             }
@@ -97,12 +95,9 @@ fn get_temp_edited_config(config_file: &PathBuf) -> Option<PathBuf> {
         return None;
     }
 
-    // todo here, it is trying to use /tmp, which we know is not a good idea because possible separate filesystem
-    // since the config things are happening before the deleting of .pen, we can use the temp dir in .pen here.
-    // we don't need to delete the file if it already exists as fs::write will overwrite all contents if it does exist.
     let temp_file = match config_file.file_name() {
-        Some(file_name) => PathBuf::from("/tmp").join(file_name),
-        None => abort(&format!("{} has no file name", config_file.display()), None)
+        Some(file_name) => TMP_DIR.join(file_name),
+        None => abort(&format!("{} has no file name", config_file.display()), None),
     };
 
     // Write the new content to a temp file
@@ -136,6 +131,9 @@ fn remove_alias_from_config_files(config_files: &Vec<(PathBuf, PathBuf)>) {
     }
 
     if !files_with_fatal_write.is_empty() {
-        // todo custom catastrophic message that says what is wrong, tells what to do and then lists all the files that has to be manually checked
+        for file in files_with_fatal_write {
+            println!("Manually remove the line {} if it exists in file {}", PEN_CONFIG_LINE, file.display());
+        }
+        catastrophic_failure(&format!("The uninstall process has failed. To fix this, correct all problems above and delete the directory at the path {}", PEN_DIR.display()), None);
     }
 }
