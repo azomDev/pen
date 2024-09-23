@@ -44,6 +44,7 @@ fn get_existing_config_files(config_files: &[PathBuf]) -> Vec<(PathBuf, PathBuf)
     let mut existing_files = Vec::new();
 
     for file_path in config_files {
+        // todo this first match is probably not needed because metadata fetch returns Err if the path does not exist
         match file_path.try_exists() {
             Ok(true) => (),
             Ok(false) => continue,
@@ -63,7 +64,7 @@ fn get_existing_config_files(config_files: &[PathBuf]) -> Vec<(PathBuf, PathBuf)
                     continue; // if temp_path is None, it means that there is no change to do with that file
                 }
             },
-            Ok(_) => continue,
+            Ok(_) => continue, // continue if path is a directory
             Err(e) => {
                 abort(&format!("Unable to get metadata of {}", file_path.display()), Some(e));
             }
@@ -73,7 +74,7 @@ fn get_existing_config_files(config_files: &[PathBuf]) -> Vec<(PathBuf, PathBuf)
     return existing_files;
 }
 
-fn get_temp_edited_config(config_file: &PathBuf) -> Option<PathBuf>{
+fn get_temp_edited_config(config_file: &PathBuf) -> Option<PathBuf> {
     let content = match fs::read_to_string(&config_file) {
         Ok(file_string) => file_string,
         Err(e) =>  abort(&format!("Failed to read {}", config_file.display()), Some(e))
@@ -91,11 +92,14 @@ fn get_temp_edited_config(config_file: &PathBuf) -> Option<PathBuf>{
         }
     }
 
-    // if data did not change, no need to try writing the data
+    // if data did not change, no need to try changing the data
     if new_content == content {
         return None;
     }
 
+    // todo here, it is trying to use /tmp, which we know is not a good idea because possible separate filesystem
+    // since the config things are happening before the deleting of .pen, we can use the temp dir in .pen here.
+    // we don't need to delete the file if it already exists as fs::write will overwrite all contents if it does exist.
     let temp_file = match config_file.file_name() {
         Some(file_name) => PathBuf::from("/tmp").join(file_name),
         None => abort(&format!("{} has no file name", config_file.display()), None)
@@ -104,7 +108,7 @@ fn get_temp_edited_config(config_file: &PathBuf) -> Option<PathBuf>{
     // Write the new content to a temp file
     match fs::write(&temp_file, &new_content) {
         Ok(()) => return Some(temp_file),
-        Err(e) => abort(&format!("Failed to write contents of {} to {}", config_file.display(), temp_file.display()), Some(e))
+        Err(e) => abort(&format!("Failed to write contents of {} to {}", config_file.display(), temp_file.display()), Some(e)),
     }
 }
 
@@ -114,7 +118,6 @@ fn remove_alias_from_config_files(config_files: &Vec<(PathBuf, PathBuf)>) {
     let mut files_with_fatal_write: Vec<&PathBuf> = Vec::new();
 
     for (config_file, temp_file) in config_files {
-        // we are assuming that if fs::rename is Err, then nothing changed in the file system
         match fs::rename(temp_file, config_file) {
             Ok(()) => {
                 at_least_one_file_edited = true;
@@ -125,7 +128,8 @@ fn remove_alias_from_config_files(config_files: &Vec<(PathBuf, PathBuf)>) {
                     files_with_fatal_write.push(config_file);
                     continue;
                 } else {
-                    abort(&format!("Failed to move {} to {}", temp_file.display(), config_file.display()), Some(e))
+                    // we are assuming that if fs::rename is Err, then nothing changed in the file system
+                    abort(&format!("Failed to move {} to {}", temp_file.display(), config_file.display()), Some(e));
                 }
             }
         }
