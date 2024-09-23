@@ -254,27 +254,23 @@ pub fn clear_temp() {
 }
 
 
-// todo this function and also the docs for this function. For the doc, in the things to know, things to know is that if one of the dirs dont exist, it will pprint an error and exit.
+// todo the doc for this function. In the things to know, things to know is that if one of the dirs dont exist, it will print an error and exit.
 pub fn assert_global_paths() {
-    // todo cases where these are files and not actually directories
-    // todo this function
+    // todo cases where these are files and not actually directories. Probably use the metadata version of isdir to have error messages
+    // if we end up using metadata, we probably don't need try_exists since metadata call fails if path does not exist
     match HOME_DIR.try_exists() {
         Ok(true) => (),
-        Ok(false) => abort(&format!("Failed to check if {} exists", HOME_DIR.display()), None),
+        Ok(false) => abort(&format!("{} does not exist.", HOME_DIR.display()), None),
         Err(e) => abort(&format!("Failed to check if {} exists", HOME_DIR.display()), Some(e))
     }
 
     match PEN_DIR.try_exists() {
         Ok(true) => (),
-        Ok(false) => abort(&format!("Failed to check if {} exists", PEN_DIR.display()), None),
+        Ok(false) => abort(&format!("{} does not exist. How did you even do that???", PEN_DIR.display()), None),
         Err(e) => abort(&format!("Failed to check if {} exists", PEN_DIR.display()), Some(e))
     }
 
-    match TMP_DIR.try_exists() {
-        Ok(true) => (),
-        Ok(false) => abort(&format!("Failed to check if {} exists", TMP_DIR.display()), None),
-        Err(e) => abort(&format!("Failed to check if {} exists", TMP_DIR.display()), Some(e))
-    }
+    // no need to check for TEMP_DIR since clear_temp() already handles that
 
     match PYTHON_VERSIONS_DIR.try_exists() {
         Ok(true) => (),

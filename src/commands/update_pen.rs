@@ -24,7 +24,7 @@ fn run_update_script(file_path: &PathBuf) {
 
     // Set the file permissions to make it executable
     let mut permissions = metadata.permissions();
-    // todo double check that this is the permission we need
+    // todo double check that this is the permission actually needed
     permissions.set_mode(0o755); // rwxr-xr-x
 
     if let Err(e) = fs::set_permissions(file_path, permissions) {

@@ -31,7 +31,7 @@ pub fn create_env(py_version: &str) {
 
     fn handle_failure(env_dir: &PathBuf, err_msg: &str) -> ! {
         eprintln!("Error: Failed to create virtual environement, cleaning up : {}", err_msg);
-        if let Err(e) = utils::try_deleting_dir(env_dir) { // this could fail if on different filesystem
+        if let Err(e) = utils::try_deleting_dir(env_dir) { // todo this could fail if on different filesystem
             catastrophic_failure(&format!("Unable to delete {}", env_dir.display()), Some(e));
         }
         process::exit(1);
