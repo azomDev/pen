@@ -16,7 +16,7 @@ pub static ENV_DIR_NAME: &str = ".venv";
 pub static UPDATE_SCRIPT_URL: &str = "todo";
 
 pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    // todo warning home_dir can return an empty string, for now it's kinda fine because of assert_global_paths
+    // hom_dir can return an empty string, but assert_global_paths handles that case
     return match home::home_dir() {
         Some(dir) => dir,
         None => abort("Failed to get home directory", None)
