@@ -3,7 +3,6 @@ use std::fs;
 
 pub fn list_py_versions() {
     println!("Listing installed Python versions:");
-
     let directory_entries = match fs::read_dir(&*PYTHON_VERSIONS_DIR) {
         Ok(entries) => entries,
         Err(e) => abort(&format!("Failed to read {}", PYTHON_VERSIONS_DIR.display()), Some(e))

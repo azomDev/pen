@@ -28,11 +28,11 @@ pub static PEN_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 
 pub static TMP_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    return PEN_DIR.join(".temp");
+    return PEN_DIR.join("temp");
 });
 
 pub static PYTHON_VERSIONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    return HOME_DIR.join(".python_versions");
+    return PEN_DIR.join("python_versions");
 });
 
 fn main() {
