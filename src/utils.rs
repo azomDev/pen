@@ -142,7 +142,11 @@ pub fn try_deleting_dir_to_temp(dir_path: &PathBuf, temp_dir: &PathBuf) -> Resul
             return Ok(());
         }
     }
-    fs::remove_dir_all(&temp_dir)?;
+    match temp_dir.try_exists() {
+        Ok(true) => fs::remove_dir_all(&temp_dir)?,
+        Ok(false) => (),
+        Err(e) => abort(&format!("Unable to know if {} exists", temp_dir.display()), Some(e)),
+    }
     fs::rename(&dir_path, &temp_dir)?;
     if dir_path.try_exists()? {
         Err(io::Error::new(
