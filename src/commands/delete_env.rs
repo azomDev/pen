@@ -1,6 +1,5 @@
 use crate::{utils::{self, abort, catastrophic_failure}, ENV_DIR_NAME};
-use std::{path::PathBuf, process};
-use std::env::current_dir;
+use std::{process, env};
 
 pub fn delete_env() {
     if !utils::confirm_action("Are you sure you want to delete the virtual environment? (y/N)") {
@@ -9,7 +8,7 @@ pub fn delete_env() {
     }
 
     // let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
-    let env_dir = match current_dir() {
+    let env_dir = match env::current_dir() {
         Ok(dir) => dir.join(ENV_DIR_NAME),
         Err(e) => abort("todo", Some(e)),
     };

@@ -4,15 +4,11 @@ use std::{fs, io::{self, Write}, path::PathBuf, process};
 
 /// Asserts that a given version string adheres to the "major.minor.patch" format.
 ///
-/// # Input
+/// # Arguments
 /// - `py_version`: A string slice representing the version number.
 ///
 /// # Output
 /// - None.
-///
-/// # Things to Know
-/// - This function ensures that the provided version string is in the correct format.
-/// - If the format is invalid, the function will print an error message and terminate the process.
 pub fn assert_major_minor_patch(py_version: &str) {
     let parts = py_version.split('.').collect::<Vec<&str>>();
 
@@ -28,35 +24,39 @@ pub fn assert_major_minor_patch(py_version: &str) {
 }
 
 
-/// Constructs the path to the directory for a specified Python version.
+/// Constructs the path to the directory for a specified Python version without validating the format of the version string.
 ///
-/// # Input
-/// - `py_version`: A string slice representing the Python version.
+/// # Arguments
+/// - `py_version`: A string slice representing the Python version, which has been
+///   validated to conform to the expected format (major.minor.patch).
 ///
 /// # Output
-/// - Returns a `PathBuf` that points to the directory for the specified version.
+/// - A `PathBuf` pointing to the directory associated with the specified Python version.
 ///
-/// # Things to Know
-/// - This function guarantees that the path is correctly formed based on the version provided.
-/// - No validation is performed on the contents of the path or its existence.
-/// - This function will not fail under normal circumstances.
+/// # Termination
+/// - This function does not terminate.
+///
+/// # Guarantees
+/// - The returned path will be correctly formed if `py_version` is well formatted.
+///
+/// # Limitations
+/// - The function does not validate the contents of the constructed path or its existence.
 pub fn get_version_path(py_version: &str) -> PathBuf {
     let py_version_dir_name = format!("python_{}", py_version);
     return PYTHON_VERSIONS_DIR.join(py_version_dir_name);
 }
 
 
-/// Prompts the user to confirm an action and returns their response.
+/// Prompts the user to confirm an action.
 ///
-/// # Input
+/// # Arguments
 /// - `prompt`: A string slice containing the prompt message to display to the user.
 ///
 /// # Output
 /// - Returns `true` if the user inputs "y" or "Y"; otherwise, returns `false`.
 ///
-/// # Things to Know
-/// - This function may fail due to issues with input/output streams. If such errors occur,
-/// the function will print an error message and terminate the process.
+/// # Termination
+/// - This function may terminate due to issues with input/output streams.
 pub fn confirm_action(prompt: &str) -> bool {
     println!("{}", prompt);
 
@@ -75,19 +75,25 @@ pub fn confirm_action(prompt: &str) -> bool {
 }
 
 
-/// Downloads a file from a specified URL to a given file path.
+/// Downloads a file from a specified URL to a given file path. If a file already exists at the specified path, it will be deleted before the new file is downloaded
 ///
-/// # Input
+/// # Arguments
 /// - `file_url`: A string slice representing the URL of the file to download.
 /// - `file_path`: A `PathBuf` specifying where to save the downloaded file.
 ///
 /// # Output
 /// - None.
 ///
-/// # Things to Know
-/// - If a file already exists at the specified path, it will be deleted before the new file is downloaded.
-/// - This function will terminate the process if the download fails or if the file does not exist after the download.
-/// - Although the function ensures the file is downloaded, it does not verify the contents of the file.
+/// # Termination
+/// - The function will terminate the process if it fails to remove an existing file.
+/// - It will also terminate if an error occurs during the download.
+/// - Additionally, it will terminate if the downloaded file cannot be found afterward.
+///
+/// # Guarantees
+/// - The function guarantees the downloaded file exists.
+///
+/// # Limitations
+/// - The function does not validate the contents of the downloaded file.
 pub fn download_file(file_url: &str, file_path: &PathBuf) {
     if let Err(e) = fs::remove_file(file_path) {
         if e.kind() != io::ErrorKind::NotFound {
@@ -120,17 +126,18 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 
 /// Attempts to delete a specified directory.
 ///
-/// # Input
+/// # Arguments
 /// - `dir_path`: A `PathBuf` representing the directory to delete.
 ///
 /// # Output
 /// - Returns `Ok(())` if the directory was successfully deleted or if it was already empty.
 /// - Returns an `Err` if the directory still exists after attempting deletion.
 ///
-/// # Things to Know
-/// - If the directory is empty, the function will still return `Ok(())`.
-/// - If this function returns `Ok(())`, you can be certain that the directory no longer exists at the specified path.
-/// - This function is designed to handle errors and will not fail under normal circumstances.
+/// # Termination
+/// - This function does not terminate.
+///
+/// # Guarantees
+/// - If this function returns `Ok(())`, it guarantees that the directory no longer exists.
 pub fn try_deleting_dir(dir_path: &PathBuf) -> Result<(), std::io::Error> {
     let delete_path = TMP_DIR.join("delete_path");
     return try_deleting_dir_to_temp(dir_path, &delete_path);
@@ -161,15 +168,20 @@ pub fn try_deleting_dir_to_temp(dir_path: &PathBuf, temp_dir: &PathBuf) -> Resul
 
 /// Checks if the specified dependencies are installed by running their `--help` command.
 ///
-/// # Input
+/// # Arguments
 /// - `dependencies`: A vector of string slices representing the names of the dependencies to check.
 ///
 /// # Output
 /// - None.
 ///
-/// # Things to Know
-/// - This function verifies if each dependency is installed by executing its `--help` command. If the command succeeds, the dependency is considered installed.
-/// - If any dependency is not installed, the function prints an error message and terminates the process.
+/// # Termination
+/// -If, for any dependencies, the `--help` command fails, this function terminates.
+///
+/// # Guarantees
+/// - If the function returns, the dependencies are considered installed.
+///
+/// # Limitations
+/// - The function only checks the result of the `--help` command for each dependencies.
 pub fn assert_dependencies(dependencies: Vec<&'static str>) {
     for dep in dependencies {
         match process::Command::new(dep)
@@ -196,10 +208,8 @@ pub fn assert_dependencies(dependencies: Vec<&'static str>) {
 /// # Output
 /// - This function does not return. It terminates the process with an exit status of 1.
 ///
-/// # Things to Know
-/// - If an `io::Error` is provided, it will be appended to the error message for additional context.
-/// - The process will exit immediately with status code 1, indicating an error.
-/// - This function always exit, it will never return
+/// # Termination
+/// - This function always terminates.
 pub fn abort(message: &str, e: Option<io::Error>) -> ! {
     if let Some(error) = e {
         eprintln!("Error: {}: {}", message, error);
@@ -209,20 +219,18 @@ pub fn abort(message: &str, e: Option<io::Error>) -> ! {
     process::exit(1);
 }
 
-/// Prints a critical error message and terminates the process with a status code of 1.
+
+/// Prints a critical error message and terminates the process with a status code of 1. The error message is prefixed with "Catastrophic failure: " and is highlighted in bold red text to emphasize the severity.
 ///
-/// # Input
+/// # Arguments
 /// - `message`: A string slice containing the critical error message to display.
 /// - `e`: An optional `io::Error` that, if provided, will be included in the error message for additional context.
 ///
 /// # Output
 /// - This function does not return. It terminates the process with an exit status of 1.
 ///
-/// # Things to Know
-/// - The error message is prefixed with "Catastrophic failure: " and is highlighted in bold red text to emphasize the severity.
-/// - If an `io::Error` is provided, it will be appended to the error message for additional detail.
-/// - The process will exit immediately with status code 1, indicating an error.
-/// - This function always exits and will never return.
+/// # Termination
+/// - This function always terminates.
 pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
     const RED_BOLD: &str = "\x1b[1;31m"; // Bold red text
     const RESET: &str = "\x1b[0m"; // Reset formatting
@@ -232,7 +240,7 @@ pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
         eprintln!("{}Catastrophic failure: {}{}", RED_BOLD, message, RESET);
     }
     process::exit(1);
-}
+} // todo mabye possible to just print RED_BOLD then call abort idk
 
 
 /// Clears and recreates the temporary directory.
@@ -243,8 +251,7 @@ pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
 /// # Output
 /// - None.
 ///
-/// # Things to Know
-/// - If the removal fails, it will attempt to create the directory anew to prevent error loops.
+/// # Termination
 /// - If either removal or creation operations fail, the function prints an error message and terminates the process.
 pub fn clear_temp() {
     if let Err(e) = fs::remove_dir_all(&*TMP_DIR) {
@@ -257,7 +264,19 @@ pub fn clear_temp() {
     }
 }
 
-
+/// Checks if the paths used in the pen exists.
+///
+/// # Arguments
+/// - None
+///
+/// # Output
+/// - None.
+///
+/// # Termination
+/// -If, for any paths, checking the existence fails or returns false, this function exits. Only exeption is if `PYTHON_VERSIONS_DIR` does not exist, then it it created.
+///
+/// # Guarantees
+/// - If the function returns, the paths are considered to be existing.
 // todo the doc for this function. In the things to know, things to know is that if one of the dirs dont exist, it will print an error and exit.
 pub fn assert_global_paths() {
     // todo cases where these are files and not actually directories. Probably use the metadata version of isdir to have error messages
