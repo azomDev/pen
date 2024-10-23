@@ -80,15 +80,10 @@ fn main() {
         .subcommand(Command::new("uninstall")
             .about("Uninstall pen")
             .long_about("Completely uninstall pen from the computer (does not include virtual environements)"))
-
-        // activate and deactivate subcommands will never happen in the rust code, so this is used for doc and help messages
         .subcommand(Command::new("activate")
             .about("Activate the virtual environment")
             .long_about("Activate the virtual environment in the current directory")
             .visible_alias("a"))
-        .subcommand(Command::new("deactivate")
-            .about("Deactivate the virtual environment")
-            .visible_alias("d"))
 
         .get_matches();
 
@@ -98,6 +93,9 @@ fn main() {
     utils::clear_temp();
 
     match matches.subcommand() {
+        Some(("activate", _args)) => {
+            commands::activate_env();
+        }
         Some(("create", args)) => {
             let py_version: &String = args.get_one("pyversion").expect("required argument");
             commands::create_env(&py_version);

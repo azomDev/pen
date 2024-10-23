@@ -7,10 +7,9 @@ pub fn delete_env() {
         process::exit(0);
     }
 
-    // let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
     let env_dir = match env::current_dir() {
         Ok(dir) => dir.join(ENV_DIR_NAME),
-        Err(e) => abort("todo", Some(e)),
+        Err(e) => abort("Failed to get current directory.", Some(e)),
     };
 
     if !env_dir.exists() || !env_dir.is_dir() {
