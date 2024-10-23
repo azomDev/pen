@@ -5,8 +5,6 @@ TMP_DIR="/tmp"
 TMP_PEN_DIR="$TMP_DIR/pen_tmp"
 LINK_PATH="/usr/local/bin/pen"
 
-# TODO /TMP MIGHT BE ON ANOTHER FILESYSTEM, SO DESIGN AROUND THIS
-
 ## CHECKING BASIC FOLDER AND STUFF EXISTENCE
 
 [ -e "$LINK_PATH" ] && { echo "Symbolic link already exists: $LINK_PATH"; exit 1; }
@@ -35,8 +33,8 @@ else
 fi
 
 case "$OSTYPE" in
-  linux-gnu) PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux/core" ;;
-  darwin*)   PEN_EXECUTABLE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos/core" ;;
+  linux-gnu) FILES_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux" ;;
+  darwin*)   FILES_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos" ;;
   *)         echo "Unsupported operating system. Exiting." && exit 1 ;;
 esac
 
@@ -52,15 +50,28 @@ trap 'handle_failure; exit 1' INT HUP TERM QUIT ABRT USR1 USR2
 
 ## DOWNLOAD FILES
 
-# Attempt to download core; handle errors if the download fails
-if ! curl -4 --fail -s -o "$TMP_PEN_DIR/core" "$PEN_EXECUTABLE_URL"; then
+# Attempt to download core
+if ! curl -4 --fail -s -o "$TMP_PEN_DIR/core" "$FILES_URL/core"; then
   echo "Failed to download core. Exiting."
   exit 1
 fi
 
+# Download the checksum
+if ! curl -4 --fail -s -o "$TMP_PEN_DIR/core.sha256" "$FILES_URL/core.sha256"; then
+  echo "Failed to download checksum. Exiting."
+  exit 1
+fi
+
+# Verify checksum
+cd "$TMP_PEN_DIR" || exit 1
+if ! sha256sum -c core.sha256; then
+    echo "Checksum verification failed. Exiting."
+    exit 1
+fi
+
 ## CREATE AND USE MAIN PEN DIRECTORY
 
-mkdir -p "$PEN_DIR" || { echo "Failed to create PEN_DIR. Exiting."; exit 1; }
+mkdir "$PEN_DIR" || { echo "Failed to create PEN_DIR. Exiting."; exit 1; }
 
 mv "$TMP_PEN_DIR/"* "$PEN_DIR" || {
     echo "Failed to move files to $PEN_DIR."
@@ -69,7 +80,7 @@ mv "$TMP_PEN_DIR/"* "$PEN_DIR" || {
 
 chmod +x "$PEN_DIR/core" || { echo "Failed to make files executable. Exiting."; handle_failure; }
 
-mkdir -p "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions directory. Exiting."; handle_failure; }
+mkdir "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions directory. Exiting."; handle_failure; }
 
 ## CREATE SYMLINK
 
