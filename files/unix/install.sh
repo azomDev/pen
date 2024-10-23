@@ -32,9 +32,16 @@ else
     mkdir -p "$TMP_PEN_DIR" || { echo "Failed to create TMP_PEN_DIR. Exiting."; exit 1; }
 fi
 
+BASE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix"
+if [ "$1" == "TESTING_ARG_DO_NOT_USE" ]; then
+    echo "USING TESTING BRANCH SPECIFIED IN INSTALL SCRIPT, YOU SHOULD KNOW WHAT YOU ARE DOING."
+    # This url can be changed to test different places for testing.
+    BASE_URL="https://raw.githubusercontent.com/azomDev/pen/refs/heads/trying-symoblic-linking-for-pen-core/files/unix"
+fi
+
 case "$OSTYPE" in
-  linux-gnu) FILES_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/linux" ;;
-  darwin*)   FILES_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix/macos" ;;
+  linux-gnu) FILES_URL="$BASE_URL/linux" ;;
+  darwin*)   FILES_URL="$BASE_URL/macos" ;;
   *)         echo "Unsupported operating system. Exiting." && exit 1 ;;
 esac
 
@@ -64,7 +71,7 @@ fi
 
 # Verify checksum
 cd "$TMP_PEN_DIR" || exit 1
-if ! sha256sum -c core.sha256; then
+if ! sha256sum -c core.sha256 --status --strict; then
     echo "Checksum verification failed. Exiting."
     exit 1
 fi
@@ -80,7 +87,8 @@ mv "$TMP_PEN_DIR/"* "$PEN_DIR" || {
 
 chmod +x "$PEN_DIR/core" || { echo "Failed to make files executable. Exiting."; handle_failure; }
 
-mkdir "$PEN_DIR/python_versions"|| { echo "Failed to create python_versions directory. Exiting."; handle_failure; }
+mkdir "$PEN_DIR/python_versions" || { echo "Failed to create python_versions directory. Exiting."; handle_failure; }
+mkdir "$PEN_DIR/temp" || { echo "Failed to create temp directory. Exiting."; handle_failure; }
 
 ## CREATE SYMLINK
 
