@@ -9,6 +9,15 @@ use std::{fs, io::{self, Write}, path::PathBuf, process};
 ///
 /// # Output
 /// - None.
+///
+/// # Termination
+/// - This function terminates if the `py_version` provided is not well formed.
+///
+/// # Guarantees
+/// - If this function returns, it guarantees that `py_version` adheres to the format.
+///
+/// # Limitations
+/// - The function does not validate if the given version is a valid Python version
 pub fn assert_major_minor_patch(py_version: &str) {
     let parts = py_version.split('.').collect::<Vec<&str>>();
 

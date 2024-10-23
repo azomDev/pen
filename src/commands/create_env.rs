@@ -8,7 +8,7 @@ pub fn create_env(py_version: &str) {
     let env_dir = PathBuf::from(".").join(ENV_DIR_NAME);
 
     match env_dir.try_exists() {
-        Ok(true) => abort(&format!("{} already exists", env_dir.display()), None),
+        Ok(true) => abort(&format!("{} already exists", env_dir.display()), None), // todo change for exit 0?
         Ok(false) => { /* Directory does not exist, proceed */ },
         Err(e) => abort(&format!("Failed to check if {} already exists", env_dir.display()), Some(e))
     }
