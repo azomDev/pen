@@ -9,6 +9,7 @@ pub fn uninstall() {
 
     println!("Uninstalling pen...");
 
+    println!("Deleting a symbolic link at /usr/local/bin/pen requires elevated permissions. Please enter your password.");
     match process::Command::new("sudo")
         .arg("rm")
         .arg("/usr/local/bin/pen")
