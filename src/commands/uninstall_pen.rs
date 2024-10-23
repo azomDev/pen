@@ -11,6 +11,7 @@ pub fn uninstall() {
 
     println!("Deleting a symbolic link at /usr/local/bin/pen requires elevated permissions. Please enter your password.");
     match process::Command::new("sudo")
+        .arg("-k") // clear credencials cache so they have to re-enter their password
         .arg("rm")
         .arg("/usr/local/bin/pen")
         .status()
