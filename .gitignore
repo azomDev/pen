@@ -2,3 +2,4 @@ pythonVersions/
 test/
 target/
 .vscode/
+.venv/
