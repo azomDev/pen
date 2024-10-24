@@ -15,7 +15,7 @@ pub fn activate_env() {
     let command = format!(r#"
         VIRTUAL_ENV="{}"
         if [ ! -f "$VIRTUAL_ENV/bin/python3" ]; then
-            echo "python3 not found in ./env/bin"
+            echo "python3 not found in $VIRTUAL_ENV/bin"
             exit 1
         fi
         export PATH="$VIRTUAL_ENV/bin:$PATH"
