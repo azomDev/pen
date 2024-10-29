@@ -66,7 +66,7 @@ pub fn get_version_path(py_version: &str) -> PathBuf {
 ///
 /// # Termination
 /// - This function may terminate due to issues with input/output streams.
-pub fn confirm_action(prompt: &str) -> bool {
+pub fn confirm_action(prompt: &str) -> bool { // todo should return result
     println!("{}", prompt);
 
     // Flush stdout to ensure the prompt appears before reading input
@@ -103,7 +103,7 @@ pub fn confirm_action(prompt: &str) -> bool {
 ///
 /// # Limitations
 /// - The function does not validate the contents of the downloaded file.
-pub fn download_file(file_url: &str, file_path: &PathBuf) {
+pub fn download_file(file_url: &str, file_path: &PathBuf) {// todo should return result
     if let Err(e) = fs::remove_file(file_path) {
         if e.kind() != io::ErrorKind::NotFound {
             abort("Unable to remove file", Some(e));
@@ -193,19 +193,21 @@ pub fn try_deleting_dir_to_temp(dir_path: &PathBuf, temp_dir: &PathBuf) -> Resul
 /// - The function only checks the result of the `--help` command for each dependencies.
 pub fn assert_dependencies(dependencies: Vec<&'static str>) {
     for dep in dependencies {
-        match process::Command::new(dep)
+        match process::Command::new("command")
+            .arg("-v")
+            .arg(dep)
             .stdin(process::Stdio::null())
             .stdout(process::Stdio::null())
             .stderr(process::Stdio::null())
-            .arg("--help")
             .status()
         {
             Ok(status) if status.success() => continue,
             Ok(_) => abort(&format!("{} is not installed", dep), None),
-            Err(e) => abort(&format!("Failed to check if {} is installed", dep), Some(e))
+            Err(e) => abort(&format!("Failed to check if {} is installed", dep), Some(e)),
         }
     }
 }
+
 
 
 /// Prints an error message and terminates the process.
