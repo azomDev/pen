@@ -32,11 +32,11 @@ else
     mkdir -p "$TMP_PEN_DIR" || { echo "Failed to create TMP_PEN_DIR. Exiting."; exit 1; }
 fi
 
-BASE_URL="https://raw.githubusercontent.com/azomDev/pen/main/files/unix"
+BASE_URL="https://raw.githubusercontent.com/azomDev/pen/main/release_files/unix"
 if [ "$1" == "TESTING_ARG_DO_NOT_USE" ]; then
     echo "USING TESTING BRANCH SPECIFIED IN INSTALL SCRIPT, YOU SHOULD KNOW WHAT YOU ARE DOING."
     # This url can be changed to test different places for testing.
-    BASE_URL="https://raw.githubusercontent.com/azomDev/pen/refs/heads/trying-symoblic-linking-for-pen-core/files/unix"
+    BASE_URL="https://raw.githubusercontent.com/azomDev/pen/refs/heads/trying-symoblic-linking-for-pen-core/release_files/unix"
 fi
 
 case "$OSTYPE" in
