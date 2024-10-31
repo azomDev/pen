@@ -23,7 +23,11 @@ pub fn activate_env() {
         exit() {{
             command exit &> /dev/null
         }}
+        deactivate() {{
+            command exit &> /dev/null
+        }}
         export -f exit
+        export -f deactivate
         PROMPT_COMMAND='PS1="($PYTHON_VERSION) [\W]\$ "'
         export PROMPT_COMMAND
         $SHELL

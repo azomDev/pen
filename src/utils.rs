@@ -209,7 +209,6 @@ pub fn assert_dependencies(dependencies: Vec<&'static str>) {
 }
 
 
-
 /// Prints an error message and terminates the process.
 ///
 /// # Input
@@ -275,6 +274,7 @@ pub fn clear_temp() {
     }
 }
 
+
 /// Checks if the paths used in the pen exists.
 ///
 /// # Arguments
@@ -288,7 +288,6 @@ pub fn clear_temp() {
 ///
 /// # Guarantees
 /// - If the function returns, the paths are considered to be existing.
-// todo the doc for this function. In the things to know, things to know is that if one of the dirs dont exist, it will print an error and exit.
 pub fn assert_global_paths() {
     // todo cases where these are files and not actually directories. Probably use the metadata version of isdir to have error messages
     // if we end up using metadata, we probably don't need try_exists since metadata call fails if path does not exist
