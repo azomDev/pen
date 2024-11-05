@@ -9,11 +9,13 @@
 - Simple command interface for streamlined usage.
 
 ## Installation
-Currently, this software supports only Linux environments. Windows and macOS are not supported at this time. However, macOS support is under development and will be available soon.
+Currently, this software supports only Linux and macOS environments. Windows is not supported at this time.
 
-Supported Shells:
-- Bash
-- Zsh
+Requirements:
+- sh (does not need to be the default shell)
+- curl
+- tar
+- make
 
 ### Fast Install
 Run this in your terminal:
@@ -23,7 +25,7 @@ bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/release_file
 
 ### Manual Install
 
-For shells other than Bash, change `~/.bashrc` to the according config file for your shell (for example: `~/.zshrc` for Zsh).
+#### **The current manual installation is old and does not work. It will be updated soon**
  
 1. Clone the repository and navigate to the directory:
     ```bash
@@ -78,17 +80,12 @@ For shells other than Bash, change `~/.bashrc` to the according config file for 
     pen delete 3.8.5
     ```
 
-- **`activate`** (`a`): Activate the virtual environment.
+- **`activate`** (`a`): Activate the virtual environment. You can exit the environment with `deactivate`
     ```bash
     pen activate
     ```
 
-- **`deactivate`** (`d`): Deactivate the current virtual environment.
-    ```bash
-    pen deactivate
-    ```
-
-- **`update`**: Update Pen to the latest version.
+- **`update`**: Update Pen to the latest version. (This is not yet supported)
     ```bash
     pen update
     ```
@@ -108,7 +105,7 @@ For shells other than Bash, change `~/.bashrc` to the according config file for 
 ### Options
 
 - **`-h`, `--help`**: Print help information.
-- **`-V`, `--version`**: Print the version of Pen.
+- **`-V`, `--version`**: Print the version of pen.
 
 
 ## Contributing
