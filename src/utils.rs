@@ -193,9 +193,9 @@ pub fn try_deleting_dir_to_temp(dir_path: &PathBuf, temp_dir: &PathBuf) -> Resul
 /// - The function only checks the result of the `--help` command for each dependencies.
 pub fn assert_dependencies(dependencies: Vec<&'static str>) {
     for dep in dependencies {
-        match process::Command::new("command")
-            .arg("-v")
-            .arg(dep)
+        match process::Command::new("sh")
+            .arg("-c")
+            .arg(format!("command -v {}", dep))
             .stdin(process::Stdio::null())
             .stdout(process::Stdio::null())
             .stderr(process::Stdio::null())
