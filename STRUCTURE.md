@@ -9,6 +9,7 @@ This directory contains scripts used for building and installing the project.
 
 - **`dev_install.sh`**: A script to set up the development environment, including dependencies and configuration settings.
 - **`linux_release_builder.sh`**: A script specifically designed to package the application for Linux distributions, preparing the necessary files for release.
+- **`linux_release_builder.sh`**: A script specifically designed to package the application for Linux distributions, preparing the necessary files for release.
 
 ### `release_files/`
 This directory contains compiled binaries and installation scripts for various operating systems.
@@ -25,20 +26,8 @@ This directory contains compiled binaries and installation scripts for various o
 ### `src/`
 This is the source code directory, where the main application code resides.
 
-- **`commands/`**: Contains Rust source files that implement various commands of the application.
-  - **`activate_en.rs`**: Implements the activation of environments.
-  - **`create_env.rs`**: Handles the creation of new environments.
-  - **`delete_env.rs`**: Manages the deletion of existing environments.
-  - **`delete_py_version.rs`**: Responsible for removing specific Python versions.
-  - **`install_py_version.rs`**: Handles the installation of new Python versions.
-  - **`list_py_version.rs`**: Lists available Python versions.
-  - **`mod.rs`**: The module file that links the command files together.
-  - **`uninstall_pen.rs`**: Manages the uninstallation of packages or environments.
-  - **`update_pen.rs`**: Responsible for updating existing packages or environments.
-
-- **`main.rs`**: The entry point of the application, orchestrating the execution flow.
-- **`py_install_algorithms.rs`**: Contains the algorithms and logic related to installing Python versions.
-- **`utils.rs`**: Utility functions and helpers used throughout the application.
+### `tests/`
+This is the tests directory, where the all the tests can be runned to check if pen is working well.
 
 ### Root Files
 
