@@ -16,6 +16,8 @@ Requirements:
 - curl
 - tar
 - make
+- bash (only for fast install)
+- cargo (only for manual install)
 
 ### Fast Install
 Run this in your terminal:
