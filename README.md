@@ -23,10 +23,8 @@ Run this in your terminal:
 bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/release_files/unix/install.sh")
 ```
 
-### Manual Install
+### Manual Install (cargo needed)
 
-#### **The current manual installation is old and does not work. It will be updated soon**
- 
 1. Clone the repository and navigate to the directory:
     ```bash
     git clone https://github.com/azomDev/pen.git
@@ -42,15 +40,14 @@ bash <(curl -sL "https://raw.githubusercontent.com/azomDev/pen/main/release_file
     ```bash
     mkdir ~/.pen
     mv target/release/pen ~/.pen/core
-    mv files/unix/main.sh ~/.pen/main.sh
-    printf '\nalias pen=". $HOME/.pen/main.sh"\n' >> ~/.bashrc
+    TODO
     ```
 
 4. Clean up and apply changes:
     ```bash
     cd ..
     rm -rf pen/
-    source ~/.bashrc
+    sudo ln -s ~/.pen/core /usr/local/bin/pen
     ```
 
 ## Usage
