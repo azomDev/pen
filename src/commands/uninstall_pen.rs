@@ -1,4 +1,4 @@
-use crate::{utils::{self, abort, catastrophic_failure}, PEN_DIR};
+use crate::{constants::PEN_DIR, utils::{self, abort, catastrophic_failure}};
 use std::{fs, process};
 
 pub fn uninstall() {

@@ -1,5 +1,7 @@
 use std::{process, env};
-use crate::{ENV_DIR_NAME, abort};
+use crate::abort;
+use crate::constants::ENV_DIR_NAME;
+
 
 pub fn activate_env() {
 

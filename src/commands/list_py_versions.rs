@@ -1,4 +1,4 @@
-use crate::{utils::abort, PYTHON_VERSIONS_DIR};
+use crate::{constants::PYTHON_VERSIONS_DIR, utils::abort};
 use std::fs;
 
 pub fn list_py_versions() {

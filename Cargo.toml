@@ -7,6 +7,10 @@ edition = "2021"
 name = "pen"
 path = "src/main.rs"
 
+[lib]
+name = "pen"
+path = "src/lib.rs"
+
 [dependencies]
 clap = { version = "4.5.8", features = ["derive"] }
 home = "0.5.9"

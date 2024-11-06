@@ -1,4 +1,5 @@
-use crate::{utils::{self, abort, catastrophic_failure}, ENV_DIR_NAME};
+use crate::utils::{self, abort, catastrophic_failure};
+use crate::constants::ENV_DIR_NAME;
 use std::{process, env};
 
 pub fn delete_env() {

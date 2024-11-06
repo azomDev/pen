@@ -1,5 +1,6 @@
 use super::install_py_version;
-use crate::{utils::{self, abort, catastrophic_failure}, ENV_DIR_NAME};
+use crate::constants::ENV_DIR_NAME;
+use crate::utils::{self, abort, catastrophic_failure};
 use std::{path::PathBuf, process};
 
 pub fn create_env(py_version: &str) {

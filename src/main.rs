@@ -1,39 +1,14 @@
 use clap::{Arg, Command};
-use home;
 use utils::abort;
-use std::{path::PathBuf, sync::LazyLock};
 
 mod commands;
 mod py_install_algorithms;
 mod utils;
+mod constants;
 
 // help_template.rs
 // line 1059
 // spec_vals.push(format!("[aliases: {all_als}]"));
-
-// global constants
-pub static ENV_DIR_NAME: &str = ".venv";
-pub static UPDATE_SCRIPT_URL: &str = "todo";
-
-pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    // hom_dir can return an empty string, but assert_global_paths handles that case
-    return match home::home_dir() {
-        Some(dir) => dir,
-        None => abort("Failed to get home directory", None)
-    };
-});
-
-pub static PEN_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    return HOME_DIR.join(".pen");
-});
-
-pub static TMP_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    return PEN_DIR.join("temp");
-});
-
-pub static PYTHON_VERSIONS_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    return PEN_DIR.join("python_versions");
-});
 
 fn main() {
     let matches = Command::new("pen")

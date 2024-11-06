@@ -1,4 +1,4 @@
-use crate::{py_install_algorithms, utils::{self, abort, catastrophic_failure}, TMP_DIR};
+use crate::{constants::TMP_DIR, py_install_algorithms, utils::{self, abort, catastrophic_failure}};
 use std::process;
 
 // todo add docs here since it is used by create_env.rs

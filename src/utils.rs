@@ -1,6 +1,5 @@
-use crate::{HOME_DIR, PEN_DIR, TMP_DIR, PYTHON_VERSIONS_DIR};
+use crate::constants::{HOME_DIR, PEN_DIR, TMP_DIR, PYTHON_VERSIONS_DIR};
 use std::{fs, io::{self, Write}, path::PathBuf, process};
-
 
 /// Asserts that a given version string adheres to the "major.minor.patch" format.
 ///
