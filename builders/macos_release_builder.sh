@@ -5,4 +5,5 @@ fi
 
 cargo build --release
 cp target/release/pen release_files/unix/macos/core
-sha256sum release_files/unix/macos/core > release_files/unix/macos/core.sha256
+cd release_files/unix/macos
+sha256sum core > core.sha256
