@@ -36,7 +36,7 @@ BASE_URL="https://raw.githubusercontent.com/azomDev/pen/main/release_files/unix"
 if [ "$1" == "TESTING_ARG_DO_NOT_USE" ]; then
     echo "USING TESTING BRANCH SPECIFIED IN INSTALL SCRIPT, YOU SHOULD KNOW WHAT YOU ARE DOING."
     # This url can be changed to test different places for testing.
-    BASE_URL="https://raw.githubusercontent.com/azomDev/pen/refs/heads/trying-symoblic-linking-for-pen-core/release_files/unix"
+    BASE_URL="https://raw.githubusercontent.com/azomDev/pen/refs/heads/testing/release_files/unix"
 fi
 
 case "$OSTYPE" in
