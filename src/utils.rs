@@ -263,18 +263,40 @@ pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
 /// # Termination
 /// - If either removal or creation operations fail, the function prints an error message and terminates the process.
 pub fn clear_temp() {
-    if let Err(e) = fs::remove_dir_all(&*TMP_DIR) {
-        let _ = fs::create_dir(&*TMP_DIR); // this is to prevent an error loop if TMP_DIR does not exist
-        abort(&format!("Failed to clear directory {}", (*TMP_DIR).display()), Some(e))
-    }
-
-    if let Err(e) = fs::create_dir(&*TMP_DIR) {
-        abort(&format!("Failed to create directory {}", (*TMP_DIR).display()), Some(e))
+    match fs::exists(&*TMP_DIR) {
+        Ok(true) => {
+            if (&*TMP_DIR).is_dir() {
+                match (&*TMP_DIR).read_dir() {
+                    Ok(mut read_dir) => {
+                        if read_dir.next().is_none() {
+                            return; // The directory is empty, no need to clear it.
+                        }
+                    },
+                    Err(e) => abort(&format!("Failed to check contents of directory {}", (*TMP_DIR).display()), Some(e))
+                }
+                if let Err(e) = fs::remove_dir_all(&*TMP_DIR) {
+                    abort(&format!("Failed to clear directory {}", (*TMP_DIR).display()), Some(e))
+                }
+                if let Err(e) = fs::create_dir(&*TMP_DIR) {
+                    abort(&format!("Failed to create directory {}", (*TMP_DIR).display()), Some(e))
+                }
+            }
+            else {
+                abort(&format!("{} exists but is not a directory", (*TMP_DIR).display()), None);
+            }
+        },
+        Ok(false) => {
+            match fs::create_dir(&*TMP_DIR) {
+                Ok(()) => return, // return because it is empty since we created it.
+                Err(e) => abort(&format!("Failed to create directory {} since it was non-existent", (*TMP_DIR).display()), Some(e))
+            }
+        },
+        Err(e) => abort(&format!("Failed to check if the directory {} exists", (*TMP_DIR).display()), Some(e))
     }
 }
 
 
-/// Checks if the paths used in the pen exists.
+/// Checks if the paths used in pen exists.
 ///
 /// # Arguments
 /// - None
