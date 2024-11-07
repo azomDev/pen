@@ -3,7 +3,7 @@ use crate::{
     constants::PYTHON_PACKAGES_DIR,
     utils::{self, abort},
 };
-use std::{env::current_dir, error::Error, fs, os::unix};
+use std::{env::current_dir, error::Error, fs, io, os::unix};
 
 use super::add_packages;
 
@@ -15,7 +15,7 @@ pub fn install() -> Result<(), Box<dyn Error>> {
 
     let py_version_maj_min = format!("{}.{}", config.python.major, config.python.minor);
 
-    fs::create_dir(".venv")?;
+    fs::create_dir_all(".venv")?;
     fs::write(
         ".venv/pyvenv.cfg",
         format!(
@@ -32,19 +32,31 @@ command = {0}/bin/python -m venv {2}/.venv
     )?;
 
     // Bin
-    fs::create_dir(".venv/bin")?;
-    unix::fs::symlink(
+    fs::create_dir_all(".venv/bin")?;
+    if let Err(e) = unix::fs::symlink(
         py_dir.join("bin/python"),
         working_directory.join(".venv/bin/python"),
-    )?;
-    unix::fs::symlink(
+    ) {
+        if e.kind() != io::ErrorKind::AlreadyExists {
+            abort("Couldn't symlink python", Some(e));
+        }
+    };
+    if let Err(e) = unix::fs::symlink(
         working_directory.join(".venv/bin/python"),
         working_directory.join(".venv/bin/python3"),
-    )?;
-    unix::fs::symlink(
+    ) {
+        if e.kind() != io::ErrorKind::AlreadyExists {
+            abort("Couldn't symlink python", Some(e));
+        }
+    };
+    if let Err(e) = unix::fs::symlink(
         working_directory.join(".venv/bin/python"),
         working_directory.join(format!(".venv/bin/python{}", py_version_maj_min)),
-    )?;
+    ) {
+        if e.kind() != io::ErrorKind::AlreadyExists {
+            abort("Couldn't symlink python", Some(e));
+        }
+    };
 
     // Lib
     let venv_lib_dir = working_directory.join(format!(
@@ -75,10 +87,17 @@ command = {0}/bin/python -m venv {2}/.venv
                             };
 
                             if entry_metadata.is_dir() {
-                                unix::fs::symlink(
+                                if let Err(e) = unix::fs::symlink(
                                     directory_entry.path(),
                                     venv_lib_dir.join(directory_entry.file_name()),
-                                )?;
+                                ) {
+                                    if e.kind() != io::ErrorKind::AlreadyExists {
+                                        abort(
+                                            &format!("Couldn't symlink the package {name}"),
+                                            Some(e),
+                                        );
+                                    }
+                                };
                             }
                         }
                     }
