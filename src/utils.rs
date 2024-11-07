@@ -1,3 +1,5 @@
+use semver::Version;
+
 use crate::constants::{
     HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR,
 };
@@ -7,6 +9,20 @@ use std::{
     path::PathBuf,
     process,
 };
+
+pub fn user_string_to_version(version: Option<&String>) -> Version {
+    match version {
+        Some(version) => {
+            assert_major_minor_patch(version);
+            match Version::parse(version) {
+                Ok(version) => version,
+                Err(_) => abort(&format!("Version {} is invalid", version), None), // TODO: error?
+            }
+        }
+        // TODO: Ask the user? Or maybe pick the most recent version?
+        None => Version::parse("3.12.3").unwrap(),
+    }
+}
 
 /// Asserts that a given version string adheres to the "major.minor.patch" format.
 ///
@@ -55,9 +71,11 @@ pub fn assert_major_minor_patch(py_version: &str) {
 ///
 /// # Limitations
 /// - The function does not validate the contents of the constructed path or its existence.
-pub fn get_version_path(py_version: &str) -> PathBuf {
-    let py_version_dir_name = format!("python{}", py_version); // todo remove hardcoded value
-    return PYTHON_VERSIONS_DIR.join(py_version_dir_name);
+pub fn get_version_path(py_version: &Version) -> PathBuf {
+    PYTHON_VERSIONS_DIR.join(format!(
+        "{}.{}.{}",
+        py_version.major, py_version.minor, py_version.patch
+    ))
 }
 
 /// Prompts the user to confirm an action.

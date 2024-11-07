@@ -6,8 +6,8 @@ use crate::{
 use std::process;
 
 // todo add docs here since it is used by create_env.rs
-pub fn install_py_version(py_version: &str) {
-    utils::assert_major_minor_patch(&py_version);
+pub fn install_py_version(py_version: &String) {
+    let py_version = utils::user_string_to_version(Some(py_version));
 
     let py_version_dir = utils::get_version_path(&py_version);
 
