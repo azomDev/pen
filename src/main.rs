@@ -13,7 +13,7 @@ mod utils;
 fn main() {
     let matches = Command::new("pen")
         .bin_name("pen")
-        .version("0.4.0")
+        .version("0.5.0")
         .about("pen is a tool for managing Python environments with different Python versions.")
         .subcommand_required(true)
         .arg_required_else_help(true)
