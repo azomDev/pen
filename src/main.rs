@@ -2,9 +2,9 @@ use clap::{Arg, Command};
 use utils::abort;
 
 mod commands;
+mod constants;
 mod py_install_algorithms;
 mod utils;
-mod constants;
 
 // help_template.rs
 // line 1059
@@ -62,7 +62,7 @@ fn main() {
 
         .get_matches();
 
-    let dependencies = vec!["curl", "tar", "make", "sh"];
+    let dependencies = vec!["curl", "tar", "make", "sh"]; // todo goal of having no system dependencies
     utils::assert_dependencies(dependencies);
     utils::assert_global_paths();
     utils::clear_temp();

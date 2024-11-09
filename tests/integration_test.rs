@@ -10,12 +10,15 @@ fn get_version_paths() {
 
     // Loop through the versions and test each one
     for version in versions {
-        let expected_path = home_dir.join(format!(".pen/python_versions/python_{}", version));
+        let expected_path = home_dir.join(format!(".cache/pen/python/python{}", version));
         let version_path = utils::get_version_path(version);
-        assert_eq!(version_path, expected_path, "Version mismatch for {}", version);
+        assert_eq!(
+            version_path, expected_path,
+            "Version mismatch for {}",
+            version
+        );
     }
 }
-
 
 #[test]
 fn other_test() {

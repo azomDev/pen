@@ -1,4 +1,8 @@
-use crate::{constants::TMP_DIR, py_install_algorithms, utils::{self, abort, catastrophic_failure}};
+use crate::{
+    constants::TMP_DIR,
+    py_install_algorithms,
+    utils::{self, abort, catastrophic_failure},
+};
 use std::process;
 
 // todo add docs here since it is used by create_env.rs
@@ -9,19 +13,28 @@ pub fn install_py_version(py_version: &str) {
 
     match py_version_dir.try_exists() {
         Ok(true) => {
-            println!("{} already exists", py_version_dir.display());
+            println!("{} is already installed", py_version_dir.display());
             return;
-        },
-        Ok(false) => {},
+        }
+        Ok(false) => {}
         Err(e) => {
-            abort(&format!("Failed to check if {} already exists", py_version_dir.display()), Some(e));
+            abort(
+                &format!(
+                    "Failed to check if {} already exists",
+                    py_version_dir.display()
+                ),
+                Some(e),
+            );
         }
     }
 
     println!("Installing Python version: {}", &py_version);
 
-    let temp_tarball_path = TMP_DIR.join("temp_tarball.tgz");
-    let python_tarball_url = format!("https://www.python.org/ftp/python/{}/Python-{}.tgz", &py_version, &py_version);
+    let temp_tarball_path = TMP_DIR.join("temp_tarball.tgz"); // todo remove hardcoded value
+    let python_tarball_url = format!(
+        "https://www.python.org/ftp/python/{}/Python-{}.tgz", // todo remove hardcoded value
+        &py_version, &py_version
+    );
 
     println!("Downloading Python installation files.");
     utils::download_file(&python_tarball_url, &temp_tarball_path);
@@ -34,7 +47,7 @@ pub fn install_py_version(py_version: &str) {
     );
 
     println!("Verifying Python install.");
-    let python_bin = py_version_dir.join("bin/python3");
+    let python_bin = py_version_dir.join("bin/python3"); // todo remove hardcoded value
     match process::Command::new(python_bin)
         .stdin(process::Stdio::null())
         .stdout(process::Stdio::null())
@@ -45,12 +58,15 @@ pub fn install_py_version(py_version: &str) {
         Ok(status) if status.success() => {
             println!("Python version {} installed successfully.", &py_version);
             return;
-        },
+        }
         Ok(_) => eprintln!("Error: Failed to verify if Python version is installed"),
-        Err(e) => eprintln!("Error: Failed to verify if Python version is installed: {}", e)
+        Err(e) => eprintln!(
+            "Error: Failed to verify if Python version is installed: {}",
+            e
+        ),
     }
     match utils::try_deleting_dir(&py_version_dir) {
         Ok(()) => process::exit(1),
-        Err(e) => catastrophic_failure("idk yet", Some(e))
+        Err(e) => catastrophic_failure("todo", Some(e)),
     }
 }

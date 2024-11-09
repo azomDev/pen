@@ -1,2 +1,2 @@
 cargo build --release
-cp target/release/pen ~/.pen/core
+cp target/release/pen ~/.local/bin/pen

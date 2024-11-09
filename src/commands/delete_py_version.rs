@@ -7,11 +7,17 @@ pub fn delete_py_version(py_version: &str) {
     let py_version_dir = utils::get_version_path(&py_version);
 
     if !py_version_dir.exists() || !py_version_dir.is_dir() {
-        eprintln!("Error: The Python version {} is not installed.", &py_version);
+        eprintln!(
+            "Error: The Python version {} is not installed.",
+            &py_version
+        );
         process::exit(0);
     }
 
-    let prompt = format!("Are you sure you want to remove the Python version {} from pen? (y/N)", &py_version);
+    let prompt = format!(
+        "Are you sure you want to remove the Python version {} from pen? (y/N)",
+        &py_version
+    );
     if !utils::confirm_action(&prompt) {
         println!("Removing canceled");
         process::exit(0);
@@ -20,7 +26,7 @@ pub fn delete_py_version(py_version: &str) {
     println!("Deleting Python version {}", &py_version);
 
     if let Err(e) = utils::try_deleting_dir(&py_version_dir) {
-        catastrophic_failure("idk yet", Some(e));
+        catastrophic_failure("todo", Some(e));
     }
 
     println!("Deletion of Python version {} successful", py_version);
