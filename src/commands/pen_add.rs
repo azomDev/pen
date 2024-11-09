@@ -8,19 +8,32 @@ use crate::{
     constants::PYTHON_PACKAGES_DIR,
     utils::abort,
 };
+use semver::Version;
 use serde::Deserialize;
-use ureq::Response;
 use zip::ZipArchive;
 
-// TODO: use the version
-pub fn add(name: &String, _version: Option<&String>) {
+pub fn add(name: &String, version: Option<&String>) {
     let projet_path = find_project();
     let mut config = read_config(&projet_path);
 
-    let response: Response = ureq::get(&format!("https://pypi.org/pypi/{name}/json"))
+    let info_url = match version {
+        Some(version_str) => {
+            let version = match Version::parse(version_str) {
+                Ok(version) => version,
+                Err(e) => abort("Provided version is invalid.", Some(&e)),
+            };
+            format!("https://pypi.org/pypi/{}/{}/json", name, version)
+        }
+        None => format!("https://pypi.org/pypi/{}/json", name),
+    };
+
+    let response = match ureq::get(&info_url)
         .set("Accept", "application/json")
         .call()
-        .unwrap();
+    {
+        Ok(res) => res,
+        Err(e) => abort("Couldn't request PyPi.", Some(&e)),
+    };
 
     if response.status() != 200 {
         abort(
@@ -39,7 +52,13 @@ pub fn add(name: &String, _version: Option<&String>) {
     };
 
     println!("Downloading: {} v{}", json.info.name, json.info.version);
-    let response: Response = ureq::get(&json.urls[0].url).call().unwrap();
+    let response = match ureq::get(&json.urls[0].url)
+        .set("Accept", "application/json")
+        .call()
+    {
+        Ok(res) => res,
+        Err(e) => abort("Couldn't request PyPi.", Some(&e)),
+    };
 
     if response.status() != 200 {
         abort(
