@@ -2,14 +2,14 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::{env, fs};
-use toml::Table;
+use toml;
 
 use crate::utils::abort;
 
 pub fn create_config(py_version: Version) -> Config {
     Config {
         python: py_version,
-        packages: Table::new(),
+        packages: toml::Table::new(),
     }
 }
 
@@ -72,5 +72,5 @@ pub fn write_config(project_path: PathBuf, config: Config) {
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub python: Version,
-    pub packages: Table,
+    pub packages: toml::Table,
 }
