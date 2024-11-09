@@ -17,17 +17,17 @@ pub fn unpack_and_install_python_version_v1(
     if let Err(e) = utils::try_deleting_dir(&temp_python_version_dir) {
         abort(
             &format!("Failed to delete {}", temp_python_version_dir.display()),
-            Some(e),
+            Some(&e),
         );
     }
     if let Err(e) = utils::try_deleting_dir(&temp_extract_path_dir) {
         abort(
             &format!("Failed to delete {}", temp_extract_path_dir.display()),
-            Some(e),
+            Some(&e),
         );
     }
     if let Err(e) = fs::create_dir(&temp_extract_path_dir) {
-        abort("Failed to create temp extract directory", Some(e));
+        abort("Failed to create temp extract directory", Some(&e));
     }
 
     println!("Extracting tarball...");
@@ -49,7 +49,7 @@ pub fn unpack_and_install_python_version_v1(
         ),
         Err(e) => abort(
             &format!("Failed to extract Python version {}", py_version),
-            Some(e),
+            Some(&e),
         ),
     }
 
@@ -72,7 +72,7 @@ pub fn unpack_and_install_python_version_v1(
         ),
         Err(e) => abort(
             &format!("Failed to configure Python version {}", py_version),
-            Some(e),
+            Some(&e),
         ),
     }
 
@@ -92,7 +92,7 @@ pub fn unpack_and_install_python_version_v1(
         ),
         Err(e) => abort(
             &format!("Failed to make Python version {}", py_version),
-            Some(e),
+            Some(&e),
         ),
     }
 
@@ -113,7 +113,7 @@ pub fn unpack_and_install_python_version_v1(
         ),
         Err(e) => abort(
             &format!("Failed to install Python version {}", py_version),
-            Some(e),
+            Some(&e),
         ),
     }
 
@@ -121,7 +121,7 @@ pub fn unpack_and_install_python_version_v1(
 
     if fs::rename(&temp_python_version_dir, &py_version_dir).is_err() {
         if let Err(e) = utils::try_deleting_dir(&py_version_dir) {
-            catastrophic_failure("catastrophic message idk", Some(e));
+            catastrophic_failure("catastrophic message idk", Some(&e));
         } else {
             abort(
                 &format!("Failed to move Python version {}", py_version),

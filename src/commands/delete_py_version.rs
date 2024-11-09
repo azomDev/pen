@@ -3,7 +3,7 @@ use std::process;
 
 pub fn delete_py_version(py_version: &String) {
     let py_version = utils::user_string_to_version(Some(py_version));
-    let py_version_dir = utils::get_version_path(&py_version);
+    let py_version_dir = utils::get_python_path(&py_version);
 
     if !py_version_dir.exists() || !py_version_dir.is_dir() {
         eprintln!(
@@ -25,7 +25,7 @@ pub fn delete_py_version(py_version: &String) {
     println!("Deleting Python version {}", &py_version);
 
     if let Err(e) = utils::try_deleting_dir(&py_version_dir) {
-        catastrophic_failure("todo", Some(e));
+        catastrophic_failure("todo", Some(&e));
     }
 
     println!("Deletion of Python version {} successful", py_version);

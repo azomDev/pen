@@ -25,7 +25,7 @@ pub fn uninstall() {
         match fs::exists(path) {
             Ok(true) => existing_paths.push((path, is_dir)),
             Ok(false) => (),
-            Err(e) => abort(&format!("Error checking path {}:", path.display()), Some(e)),
+            Err(e) => abort(&format!("Error checking path {}:", path.display()), Some(&e)),
         }
     }
 

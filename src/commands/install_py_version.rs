@@ -9,7 +9,7 @@ use std::process;
 pub fn install_py_version(py_version: &String) {
     let py_version = utils::user_string_to_version(Some(py_version));
 
-    let py_version_dir = utils::get_version_path(&py_version);
+    let py_version_dir = utils::get_python_path(&py_version);
 
     match py_version_dir.try_exists() {
         Ok(true) => {
@@ -23,7 +23,7 @@ pub fn install_py_version(py_version: &String) {
                     "Failed to check if {} already exists",
                     py_version_dir.display()
                 ),
-                Some(e),
+                Some(&e),
             );
         }
     }
@@ -67,6 +67,6 @@ pub fn install_py_version(py_version: &String) {
     }
     match utils::try_deleting_dir(&py_version_dir) {
         Ok(()) => process::exit(1),
-        Err(e) => catastrophic_failure("todo", Some(e)),
+        Err(e) => catastrophic_failure("todo", Some(&e)),
     }
 }
