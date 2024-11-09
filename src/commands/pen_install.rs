@@ -61,12 +61,13 @@ command = {0}/bin/python -m venv {2}/.venv
         abort("Couldn't create folder.", Some(&e));
     }
     for (name, version) in config.packages {
-        let package_name = format!("{}_{}", name, &version.try_into::<String>().unwrap());
+        let version = version.try_into::<String>().unwrap();
+        let package_name = format!("{}_{}", name, version);
         let package_path: std::path::PathBuf = PYTHON_PACKAGES_DIR.join(&package_name);
         match fs::exists(&package_path) {
             Ok(exists) => {
                 if !exists {
-                    add(&name, Some(&String::from("value")));
+                    add(&name, Some(&version));
                 }
 
                 match fs::read_dir(&package_path) {
