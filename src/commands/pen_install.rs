@@ -3,7 +3,7 @@ use crate::{
     constants::PYTHON_PACKAGES_DIR,
     utils::{self, abort},
 };
-use std::{fs, io, os::unix};
+use std::{fs, io, os::unix, path::PathBuf};
 
 use super::add;
 
@@ -14,11 +14,11 @@ pub fn install() {
     let py_version_maj_min = format!("{}.{}", config.python.major, config.python.minor);
     let py_dir = utils::get_python_path(&config.python);
 
-    if let Err(e) = fs::create_dir_all(".venv") {
+    if let Err(e) = fs::create_dir_all(projet_path.join(".venv/bin")) {
         abort("Couldn't create folder.", Some(&e));
     }
     if let Err(e) = fs::write(
-        ".venv/pyvenv.cfg",
+        projet_path.join(".venv/pyvenv.cfg"),
         format!(
             r#"home = {0}/bin
 include-system-site-packages = false
@@ -35,42 +35,28 @@ command = {0}/bin/python -m venv {2}/.venv
     }
 
     // Bin
-    if let Err(e) = fs::create_dir_all(".venv/bin") {
-        abort("Couldn't create folder.", Some(&e));
-    }
-    match fs::remove_file(projet_path.join(".venv/bin/python")) {
-        Ok(_) => {
-            if let Err(e) = unix::fs::symlink(
-                py_dir.join("bin/python"),
-                projet_path.join(".venv/bin/python"),
-            ) {
-                abort("Couldn't symlink python", Some(&e));
-            }
-        }
-        Err(e) => abort("Couldn't remove existing python symlink", Some(&e)),
-    }
-    if let Err(e) = unix::fs::symlink(
-        projet_path.join(".venv/bin/python"),
-        projet_path.join(".venv/bin/python3"),
-    ) {
-        if e.kind() != io::ErrorKind::AlreadyExists {
-            abort("Couldn't symlink python", Some(&e));
-        }
-    };
-    if let Err(e) = unix::fs::symlink(
-        projet_path.join(".venv/bin/python"),
-        projet_path.join(format!(".venv/bin/python{}", py_version_maj_min)),
-    ) {
-        if e.kind() != io::ErrorKind::AlreadyExists {
-            abort("Couldn't symlink python", Some(&e));
-        }
-    };
+    symlink(
+        &py_dir.join("bin/python"),
+        &projet_path.join(".venv/bin/python"),
+        Some(true),
+    );
+    symlink(
+        &projet_path.join(".venv/bin/python"),
+        &projet_path.join(".venv/bin/python3"),
+        Some(false),
+    );
+    symlink(
+        &projet_path.join(".venv/bin/python"),
+        &projet_path.join(format!(".venv/bin/python{}", py_version_maj_min)),
+        Some(false),
+    );
 
     // Lib
     let venv_lib_dir = projet_path.join(format!(
         ".venv/lib/python{}/site-packages",
         py_version_maj_min
     ));
+    let _ = fs::remove_dir_all(&venv_lib_dir);
     if let Err(e) = fs::create_dir_all(&venv_lib_dir) {
         abort("Couldn't create folder.", Some(&e));
     }
@@ -124,4 +110,32 @@ command = {0}/bin/python -m venv {2}/.venv
     }
 
     println!("Installation complete!");
+}
+
+fn symlink(original: &PathBuf, link: &PathBuf, remove_existing: Option<bool>) {
+    match fs::read_link(link) {
+        Ok(_) => match remove_existing {
+            Some(true) => {
+                if let Err(e) = fs::remove_file(link) {
+                    abort(&format!("Couldn't remove {}.", link.display()), Some(&e));
+                }
+            }
+            Some(false) => {
+                return; // We exit the function gracefully and continue
+            }
+            None => abort("Symlink already exists", None),
+        },
+        Err(_) => { /* No conflicts! */ }
+    };
+
+    if let Err(e) = unix::fs::symlink(original, link) {
+        abort(
+            &format!(
+                "Couldn't symlink {} to {}.",
+                original.display(),
+                link.display()
+            ),
+            Some(&e),
+        );
+    }
 }
