@@ -4,6 +4,7 @@ use crate::constants::{
     HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR,
 };
 use std::{
+    error::Error,
     fs,
     io::{self, Write},
     path::PathBuf,
@@ -16,7 +17,7 @@ pub fn user_string_to_version(version: Option<&String>) -> Version {
             assert_major_minor_patch(version);
             match Version::parse(version) {
                 Ok(version) => version,
-                Err(_) => abort(&format!("Version {} is invalid", version), None), // TODO: error?
+                Err(e) => abort(&format!("Version {} is invalid.", version), Some(&e)),
             }
         }
         // TODO: Ask the user? Or maybe pick the most recent version?
@@ -71,7 +72,7 @@ pub fn assert_major_minor_patch(py_version: &str) {
 ///
 /// # Limitations
 /// - The function does not validate the contents of the constructed path or its existence.
-pub fn get_version_path(py_version: &Version) -> PathBuf {
+pub fn get_python_path(py_version: &Version) -> PathBuf {
     PYTHON_VERSIONS_DIR.join(format!(
         "{}.{}.{}",
         py_version.major, py_version.minor, py_version.patch
@@ -94,13 +95,13 @@ pub fn confirm_action(prompt: &str) -> bool {
 
     // Flush stdout to ensure the prompt appears before reading input
     if let Err(e) = io::stdout().flush() {
-        abort("Failed to flush standart output", Some(e));
+        abort("Failed to flush standart output", Some(&e));
     }
 
     // Read user input
     let mut user_input = String::new();
     if let Err(e) = io::stdin().read_line(&mut user_input) {
-        abort("Failed to read standart input", Some(e));
+        abort("Failed to read standart input", Some(&e));
     }
 
     return user_input.trim().eq_ignore_ascii_case("y");
@@ -129,7 +130,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
     // todo should return result
     if let Err(e) = fs::remove_file(file_path) {
         if e.kind() != io::ErrorKind::NotFound {
-            abort("Unable to remove file", Some(e));
+            abort("Unable to remove file", Some(&e));
         }
     }
 
@@ -160,7 +161,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
                 file_url,
                 file_path.display()
             ),
-            Some(e),
+            Some(&e),
         ),
     }
 
@@ -202,7 +203,7 @@ pub fn try_deleting_dir_to_temp(
         Ok(false) => (),
         Err(e) => abort(
             &format!("Unable to know if {} exists", temp_dir.display()),
-            Some(e),
+            Some(&e),
         ),
     }
     fs::rename(&dir_path, &temp_dir)?;
@@ -244,7 +245,7 @@ pub fn assert_dependencies(dependencies: Vec<&'static str>) {
         {
             Ok(status) if status.success() => continue,
             Ok(_) => abort(&format!("{} is not installed", dep), None),
-            Err(e) => abort(&format!("Failed to check if {} is installed", dep), Some(e)),
+            Err(e) => abort(&format!("Failed to check if {} is installed", dep), Some(&e)),
         }
     }
 }
@@ -260,7 +261,7 @@ pub fn assert_dependencies(dependencies: Vec<&'static str>) {
 ///
 /// # Termination
 /// - This function always terminates.
-pub fn abort(message: &str, e: Option<io::Error>) -> ! {
+pub fn abort(message: &str, e: Option<&dyn Error>) -> ! {
     if let Some(error) = e {
         eprintln!("Error: {}: {}", message, error);
     } else {
@@ -280,7 +281,7 @@ pub fn abort(message: &str, e: Option<io::Error>) -> ! {
 ///
 /// # Termination
 /// - This function always terminates.
-pub fn catastrophic_failure(message: &str, e: Option<io::Error>) -> ! {
+pub fn catastrophic_failure(message: &str, e: Option<&dyn Error>) -> ! {
     const RED_BOLD: &str = "\x1b[1;31m"; // Bold red text
     const RESET: &str = "\x1b[0m"; // Reset formatting
     if let Some(error) = e {
@@ -312,7 +313,7 @@ pub fn clear_temp() {
                 "Failed to check contents of directory {}",
                 (*TMP_DIR).display()
             ),
-            Some(e),
+            Some(&e),
         ),
     };
 
@@ -323,14 +324,14 @@ pub fn clear_temp() {
     if let Err(e) = fs::remove_dir_all(&*TMP_DIR) {
         abort(
             &format!("Failed to clear directory {}", (*TMP_DIR).display()),
-            Some(e),
+            Some(&e),
         )
     }
 
     if let Err(e) = fs::create_dir(&*TMP_DIR) {
         abort(
             &format!("Failed to create directory {}", (*TMP_DIR).display()),
-            Some(e),
+            Some(&e),
         )
     }
 }
@@ -359,7 +360,7 @@ pub fn assert_global_paths() {
         Ok(false) => abort(&format!("{} does not exist.", HOME_DIR.display()), None),
         Err(e) => abort(
             &format!("Failed to check if directory {} exists", HOME_DIR.display()),
-            Some(e),
+            Some(&e),
         ),
     }
 
@@ -385,13 +386,13 @@ pub fn assert_global_paths() {
                 if let Err(e) = fs::create_dir_all(path) {
                     abort(
                         &format!("Failed to create directory {}", path.display()),
-                        Some(e),
+                        Some(&e),
                     );
                 }
             }
             Err(e) => abort(
                 &format!("Failed to check if directory {} exists", path.display()),
-                Some(e),
+                Some(&e),
             ),
         }
     }
@@ -400,12 +401,12 @@ pub fn assert_global_paths() {
         Ok(true) => (),
         Ok(false) => {
             if let Err(e) = fs::File::create_new(&*PEN_CONFIG_FILE) {
-                abort("todo", Some(e));
+                abort("todo", Some(&e));
             }
         }
         Err(e) => abort(
             &format!("Failed to check if file {} exists", PEN_DIR.display()),
-            Some(e),
+            Some(&e),
         ),
     }
 }

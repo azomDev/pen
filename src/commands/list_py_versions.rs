@@ -5,7 +5,7 @@ pub fn list_py_versions() {
     println!("Listing installed Python versions:");
     let directory_entries = match fs::read_dir(&*PYTHON_VERSIONS_DIR) {
         Ok(entries) => entries,
-        Err(e) => abort(&format!("Failed to read {}", PYTHON_VERSIONS_DIR.display()), Some(e))
+        Err(e) => abort(&format!("Failed to read {}", PYTHON_VERSIONS_DIR.display()), Some(&e))
     };
 
     let mut installed_versions: Vec<String> = Vec::new();
@@ -13,12 +13,12 @@ pub fn list_py_versions() {
     for directory_entry in directory_entries {
         let directory_entry = match directory_entry {
             Ok(entry) => entry,
-            Err(e) => abort("Failed to read directory entry", Some(e))
+            Err(e) => abort("Failed to read directory entry", Some(&e))
         };
 
         let entry_metadata = match directory_entry.metadata() {
             Ok(metadata) => metadata,
-            Err(e) => abort("Failed to read metadata", Some(e))
+            Err(e) => abort("Failed to read metadata", Some(&e))
         };
 
         if entry_metadata.is_dir() {

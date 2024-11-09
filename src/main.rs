@@ -28,29 +28,12 @@ fn main() {
             .about("Create a virtual environment with a Python version")
             .long_about("Create a new virtual environment with the specified Python version in the current directory")
             .arg(Arg::new("pyversion")
-                .help("Specify the Python version (ex. pen create 3.11.9)")
+                .help("Specify the Python version (ex. pen init 3.11.9)")
                 .index(1)))
         .subcommand(Command::new("install")
             .visible_alias("i")
-            .about("Install the .venv")
-            .long_about("Install a specified Python version"))
-        .subcommand(Command::new("list")
-            .visible_alias("l")
-            .about("List Python versions")
-            .long_about("List the installed Python versions from pen"))
-        .subcommand(Command::new("delete")
-            .about("Delete the virtual environment or a Python version")
-            .long_about("Delete the virtual environment in the current directory or delete a specific Python version")
-            .arg(Arg::new("pyversion")
-                .help("Specify the Python version to delete (to delete the virtual environement, run the command without an argument")
-                .required(false)
-                .index(1)))
-        .subcommand(Command::new("update")
-            .about("Update pen")
-            .long_about("Update pen to the latest version, if available"))
-        .subcommand(Command::new("uninstall")
-            .about("Uninstall pen")
-            .long_about("Completely uninstall pen from the computer (does not include virtual environements)"))
+            .about("Install the .venv and all packages")
+            .long_about("Creates the .venv according to the config"))
         .subcommand(Command::new("add")
             .about("Add a package to the current project")
             .long_about("Add a PyPI package to the current project (pip but faster)")
@@ -66,6 +49,23 @@ fn main() {
             .about("Activate the virtual environment")
             .long_about("Activate the virtual environment in the current directory")
             .visible_alias("a"))
+        .subcommand(Command::new("list")
+            .visible_alias("l")
+            .about("List Python versions")
+            .long_about("List the installed Python versions from pen"))
+        .subcommand(Command::new("delete")
+            .about("Delete a Python version")
+            .long_about("Delete a specific Python version")
+            .arg(Arg::new("pyversion")
+                .help("Specify the Python version to delete (this might break installed .venv until the version is installed again)")
+                .required(true)
+                .index(1)))
+        .subcommand(Command::new("update")
+            .about("Update pen")
+            .long_about("Update pen to the latest version, if available"))
+        .subcommand(Command::new("uninstall")
+            .about("Uninstall pen")
+            .long_about("Completely uninstall pen from the computer (does not include virtual environements)"))
 
         .get_matches();
 
@@ -75,38 +75,33 @@ fn main() {
     utils::clear_temp();
 
     match matches.subcommand() {
-        // Venv
-        Some(("activate", _args)) => {
-            commands::activate_env();
-        }
-        Some(("delete", args)) => {
-            if let Some(py_version) = args.get_one::<String>("pyversion") {
-                commands::delete_py_version(&py_version);
-            } else {
-                commands::delete_env();
-            }
-        }
-
         // Python
         Some(("list", _args)) => {
             commands::list_py_versions();
         }
+        Some(("delete", args)) => {
+            let py_version: &String = args.get_one("pyversion").expect("required argument");
+            commands::delete_py_version(py_version);
+        }
 
         //* Pen
         Some(("init", args)) => {
-            let pyversion: Option<&String> = args.get_one("pyversion");
-            commands::init(pyversion).unwrap();
+            let py_version: Option<&String> = args.get_one("pyversion");
+            commands::init(py_version);
         }
         Some(("install", _args)) => {
-            commands::install().unwrap();
+            commands::install();
         }
         Some(("add", args)) => {
             let name: &String = args.get_one("name").expect("required argument");
             let version: Option<&String> = args.get_one("version");
-            commands::add_packages(name, version).unwrap();
+            commands::add(name, version);
+        }
+        Some(("activate", _args)) => {
+            commands::activate();
         }
 
-        // Pen
+        // Installation
         Some(("uninstall", _args)) => {
             commands::uninstall();
         }
