@@ -1,15 +1,10 @@
 use clap::{Arg, Command};
+use semver::VersionReq;
 use utils::abort;
 
 mod commands;
 mod constants;
-mod config;
-mod py_install_algorithms;
 mod utils;
-
-// help_template.rs
-// line 1059
-// spec_vals.push(format!("[aliases: {all_als}]"));
 
 fn main() {
     let matches = Command::new("pen")
@@ -93,9 +88,16 @@ fn main() {
             commands::install();
         }
         Some(("add", args)) => {
-            let name: &String = args.get_one("name").expect("required argument");
-            let version: Option<&String> = args.get_one("version");
-            commands::add(name, version);
+            let name = args.get_one::<String>("name").expect("required argument");
+            let version = match args.get_one::<String>("version") {
+                Some(version) => match VersionReq::parse(version) {
+                    Ok(version) => version,
+                    Err(e) => abort("Invalid version range", Some(&e)),
+                },
+                None => VersionReq::default(),
+            };
+
+            commands::add(name, &version);
         }
         Some(("activate", _args)) => {
             commands::activate();

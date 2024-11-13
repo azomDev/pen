@@ -1,7 +1,7 @@
-use crate::{
+use crate::constants::ENV_DIR_NAME;
+use crate::utils::{
     abort,
     config::{find_project, read_config},
-    constants::ENV_DIR_NAME,
 };
 use std::process;
 

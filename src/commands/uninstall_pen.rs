@@ -1,7 +1,5 @@
-use crate::{
-    constants::{PEN_BIN_FILE, PEN_CONFIG_FILE, PEN_DIR},
-    utils::{self, abort},
-};
+use crate::constants::{PEN_BIN_FILE, PEN_CONFIG_FILE, PEN_DIR};
+use crate::utils::{self, abort};
 use std::{fs, process};
 
 pub fn uninstall() {
@@ -25,7 +23,10 @@ pub fn uninstall() {
         match fs::exists(path) {
             Ok(true) => existing_paths.push((path, is_dir)),
             Ok(false) => (),
-            Err(e) => abort(&format!("Error checking path {}:", path.display()), Some(&e)),
+            Err(e) => abort(
+                &format!("Error checking path {}:", path.display()),
+                Some(&e),
+            ),
         }
     }
 
