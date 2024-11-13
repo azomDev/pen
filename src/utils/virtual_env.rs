@@ -66,7 +66,7 @@ pub fn create_virtual_env(config: Config, destination_path: &PathBuf) {
 
         // TODO: use lockfile to cache version
         let package = find_matching_package_version(&name, &version);
-        link_package(&package, &site_packages_path);
+        link_package(&package, &site_packages_path, &config.python);
     }
 }
 
@@ -101,13 +101,13 @@ pub fn link_python(version: &Version, destination_path: PathBuf, py_version_shor
     }
 }
 
-pub fn link_package(package: &Package, site_packages_path: &PathBuf) {
+pub fn link_package(package: &Package, site_packages_path: &PathBuf, py_version: &Version) {
     let package_path = utils::get_package_path(&package);
 
     match fs::exists(&package_path) {
         Ok(exists) => {
             if !exists {
-                download_package(&package);
+                download_package(&package, py_version);
             }
 
             match fs::read_dir(&package_path) {
