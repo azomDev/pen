@@ -81,8 +81,9 @@ fn main() {
 
         //* Pen
         Some(("init", args)) => {
-            let py_version: Option<&String> = args.get_one("pyversion");
-            commands::init(py_version);
+            let version = utils::user_string_to_version(args.get_one::<String>("pyversion"));
+
+            commands::init(version);
         }
         Some(("install", _args)) => {
             commands::install();

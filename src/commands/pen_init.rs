@@ -1,11 +1,12 @@
+use semver::Version;
+
 use crate::utils::{
-    self, abort,
+    abort,
     config::{create_config, write_config},
 };
 use std::{env, fs};
 
-pub fn init(version: Option<&String>) {
-    let version = utils::user_string_to_version(version);
+pub fn init(version: Version) {
     let config = create_config(version);
 
     let project_path = match env::current_dir() {
