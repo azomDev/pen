@@ -1,5 +1,4 @@
 use std::{
-    cmp::Ordering,
     collections::HashMap,
     env::consts::{ARCH, OS},
     fs::{self, File},
@@ -12,9 +11,9 @@ use zip::ZipArchive;
 
 use crate::utils::{self, abort};
 
-pub fn download_package(package: &Package) {
+pub fn download_package(package: &Package, py_version: &Version) {
     println!("Downloading: {} v{}", package.name, package.version);
-    let url = match find_package_download_url(package) {
+    let url = match find_package_download_url(package, py_version) {
         Some(url) => url,
         None => abort("This package doesn't seem compatible with your os.", None),
     };
@@ -136,7 +135,7 @@ pub fn find_matching_package_version(name: &str, version_requirements: &VersionR
     }
 }
 
-fn find_package_download_url(package: &Package) -> Option<String> {
+fn find_package_download_url(package: &Package, py_version: &Version) -> Option<String> {
     let response = match ureq::get(&format!(
         "https://pypi.org/pypi/{}/{}/json",
         package.name, package.version
@@ -164,18 +163,33 @@ fn find_package_download_url(package: &Package) -> Option<String> {
         Err(e) => abort("Received an invalid response from PyPi.", Some(&e)),
     };
 
+    let python = format!("py{}{}", py_version.major, py_version.minor);
+    let arch = match OS {
+        "macos" if ARCH == "aarch64" => "arm64",
+        _ => ARCH,
+    };
     json.urls
         .iter()
         .max_by(|a, b| {
             let a = a.url.split("-").collect::<Vec<&str>>();
             let b = b.url.split("-").collect::<Vec<&str>>();
 
-            let wheel = a[a.len() - 1].ends_with(".whl").cmp(&b[b.len() - 1].ends_with(".whl"));
-            let python = a[a.len() - 3].contains(".whl").cmp(&b[b.len() - 3].ends_with(".whl"));
-            let os = a[a.len() - 1].contains(".whl").cmp(&b[b.len() - 1].contains(".whl"));
-            let arch = a[a.len() - 1].contains(".whl").cmp(&b[b.len() - 1].ends_with(".whl"));
+            (a.len() > 3).cmp(&(b.len() > 3)).then_with(|| {
+                let wheel = a[a.len() - 1]
+                    .ends_with(".whl")
+                    .cmp(&b[b.len() - 1].ends_with(".whl"));
+                let python = a[a.len() - 3]
+                    .contains(&python)
+                    .cmp(&b[b.len() - 3].contains(&python));
+                let arch = a[a.len() - 1]
+                    .contains(arch)
+                    .cmp(&b[b.len() - 1].contains(arch));
+                let os = a[a.len() - 1]
+                    .contains(OS)
+                    .cmp(&b[b.len() - 1].contains(OS));
 
-            wheel.then(python).then(os).then(arch)
+                wheel.then(python).then(arch).then(os)
+            })
         })
         .map(|p| p.url.clone())
 }
