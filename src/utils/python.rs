@@ -1,12 +1,69 @@
 use semver::Version;
 
-use crate::{
-    constants::TMP_DIR,
-    utils::{self, abort, catastrophic_failure},
-};
+use crate::constants::TMP_DIR;
+use crate::utils::{self, abort, catastrophic_failure};
 use std::{fs, path::PathBuf, process};
 
-pub fn unpack_and_install_python_version_v1(
+pub fn install_python(version: &Version) {
+    let version_dir = utils::get_python_path(&version);
+
+    match version_dir.try_exists() {
+        Ok(true) => {
+            println!("{} is already installed", version_dir.display());
+            return;
+        }
+        Ok(false) => {}
+        Err(e) => {
+            abort(
+                &format!(
+                    "Failed to check if {} already exists",
+                    version_dir.display()
+                ),
+                Some(&e),
+            );
+        }
+    }
+
+    println!("Installing Python version: {}", &version);
+
+    let temp_tarball_path = TMP_DIR.join("temp_tarball.tgz"); // todo remove hardcoded value
+    let python_tarball_url = format!(
+        "https://www.python.org/ftp/python/{}/Python-{}.tgz", // todo remove hardcoded value
+        &version, &version
+    );
+
+    println!("Downloading Python installation files.");
+    utils::download_file(&python_tarball_url, &temp_tarball_path);
+
+    println!("Building Python from source.");
+    unpack_and_install_python_version_v1(&version, &version_dir, &temp_tarball_path);
+
+    println!("Verifying Python install.");
+    let python_bin = version_dir.join("bin/python3"); // todo remove hardcoded value
+    match process::Command::new(python_bin)
+        .stdin(process::Stdio::null())
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
+        .arg("--version")
+        .status()
+    {
+        Ok(status) if status.success() => {
+            println!("Python version {} installed successfully.", &version);
+            return;
+        }
+        Ok(_) => eprintln!("Error: Failed to verify if Python version is installed"),
+        Err(e) => eprintln!(
+            "Error: Failed to verify if Python version is installed: {}",
+            e
+        ),
+    }
+    match utils::try_deleting_dir(&version_dir) {
+        Ok(()) => process::exit(1),
+        Err(e) => catastrophic_failure("todo", Some(&e)),
+    }
+}
+
+fn unpack_and_install_python_version_v1(
     py_version: &Version,
     py_version_dir: &PathBuf,
     temp_tarball_path: &PathBuf,
@@ -59,8 +116,8 @@ pub fn unpack_and_install_python_version_v1(
     let source_dir = temp_extract_path_dir.join(PathBuf::from(source_name));
     match process::Command::new("./configure")
         .stdin(process::Stdio::null())
-        // .stdout(process::Stdio::null())
-        // .stderr(process::Stdio::null())
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .arg(format!("--prefix={}", temp_python_version_dir.display()))
         .status()
@@ -80,8 +137,8 @@ pub fn unpack_and_install_python_version_v1(
 
     match process::Command::new("make")
         .stdin(process::Stdio::null())
-        // .stdout(process::Stdio::null())
-        // .stderr(process::Stdio::null())
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .status()
     {
@@ -100,8 +157,8 @@ pub fn unpack_and_install_python_version_v1(
 
     match process::Command::new("make")
         .stdin(process::Stdio::null())
-        // .stdout(process::Stdio::null())
-        // .stderr(process::Stdio::null())
+        .stdout(process::Stdio::null())
+        .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .arg("install")
         .status()

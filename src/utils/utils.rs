@@ -3,6 +3,7 @@ use semver::Version;
 use crate::constants::{
     HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR,
 };
+use crate::utils::package::Package;
 use std::{
     error::Error,
     fs,
@@ -72,10 +73,17 @@ pub fn assert_major_minor_patch(py_version: &str) {
 ///
 /// # Limitations
 /// - The function does not validate the contents of the constructed path or its existence.
-pub fn get_python_path(py_version: &Version) -> PathBuf {
+pub fn get_python_path(version: &Version) -> PathBuf {
     PYTHON_VERSIONS_DIR.join(format!(
         "{}.{}.{}",
-        py_version.major, py_version.minor, py_version.patch
+        version.major, version.minor, version.patch
+    ))
+}
+
+pub fn get_package_path(package: &Package) -> PathBuf {
+    PYTHON_PACKAGES_DIR.join(format!(
+        "{}_{}.{}.{}",
+        package.name, package.version.major, package.version.minor, package.version.patch
     ))
 }
 
@@ -245,7 +253,10 @@ pub fn assert_dependencies(dependencies: Vec<&'static str>) {
         {
             Ok(status) if status.success() => continue,
             Ok(_) => abort(&format!("{} is not installed", dep), None),
-            Err(e) => abort(&format!("Failed to check if {} is installed", dep), Some(&e)),
+            Err(e) => abort(
+                &format!("Failed to check if {} is installed", dep),
+                Some(&e),
+            ),
         }
     }
 }

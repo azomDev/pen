@@ -1,6 +1,6 @@
-use crate::{
+use crate::utils::{
+    self, abort,
     config::{create_config, write_config},
-    utils::{self, abort},
 };
 use std::{env, fs};
 
