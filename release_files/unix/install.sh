@@ -122,16 +122,16 @@ trap 'handle_failure; exit 1' INT HUP TERM QUIT ABRT USR1 USR2
 ## CREATE AND USE MAIN PEN DIRECTORY
 
 
-mkdir -p "$BIN_DIR" || { echo "Failed to create $BIN_DIR. Exiting."; handle_failure }
-mkdir "$CONFIG_DIR" || { echo "Failed to create $CONFIG_DIR. Exiting."; handle_failure }
-mkdir -p "$PEN_DIR" || { echo "Failed to create $PEN_DIR. Exiting."; handle_failure }
-mkdir "$PYTHON_VERSIONS_DIR" || { echo "Failed to create $PYTHON_VERSIONS_DIR. Exiting."; handle_failure }
-mkdir "$PYTHON_PACKAGES_DIR" || { echo "Failed to create $PYTHON_PACKAGES_DIR. Exiting."; handle_failure }
-mkdir "$PEN_TEMP_DIR" || { echo "Failed to create $PEN_TEMP_DIR. Exiting."; handle_failure }
+mkdir -p "$BIN_DIR" || { echo "Failed to create $BIN_DIR. Exiting."; handle_failure; }
+mkdir -p "$CONFIG_DIR" || { echo "Failed to create $CONFIG_DIR. Exiting."; handle_failure; }
+mkdir -p "$PEN_DIR" || { echo "Failed to create $PEN_DIR. Exiting."; handle_failure; }
+mkdir "$PYTHON_VERSIONS_DIR" || { echo "Failed to create $PYTHON_VERSIONS_DIR. Exiting."; handle_failure; }
+mkdir "$PYTHON_PACKAGES_DIR" || { echo "Failed to create $PYTHON_PACKAGES_DIR. Exiting."; handle_failure; }
+mkdir "$PEN_TEMP_DIR" || { echo "Failed to create $PEN_TEMP_DIR. Exiting."; handle_failure; }
 
-touch "$PEN_CONFIG_FILE" || { echo "Failed to create $PEN_CONFIG_FILE. Exiting."; handle_failure } # todo add things in the config
+touch "$PEN_TEMP_DIR" || { echo "Failed to create $PEN_TEMP_DIR. Exiting."; handle_failure; }
 
-mv "$ROOT_TMP_PEN_CORE_FILE" "$PEN_BIN_FILE" || { echo "Failed to move files to $PEN_DIR."; handle_failure }
+mv "$ROOT_TMP_PEN_CORE_FILE" "$PEN_BIN_FILE" || { echo "Failed to move files to $PEN_DIR."; handle_failure; }
 
 chmod +x "$PEN_BIN_FILE" || { echo "Failed to make files executable. Exiting."; handle_failure; }
 
