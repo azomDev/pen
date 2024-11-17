@@ -19,7 +19,7 @@
 //     // Check if the file exists and is a regular file
 //     let metadata = match fs::metadata(file_path) {
 //         Ok(metadata) => metadata,
-//         Err(e) => abort(&format!("Failed to get metadata from file {}", file_path.display()), Some(e))
+//         Err(e) => abort(&format!("Failed to get metadata from file {}", file_path.display()), Some(&e))
 //     };
 
 //     // Set the file permissions to make it executable
@@ -28,7 +28,7 @@
 //     permissions.set_mode(0o755); // rwxr-xr-x
 
 //     if let Err(e) = fs::set_permissions(file_path, permissions) {
-//         abort("Failed to set file permissions", Some(e));
+//         abort("Failed to set file permissions", Some(&e));
 //     }
 
 //     // Try to run the script with sh
@@ -41,6 +41,6 @@
 //     {
 //         Ok(status) if status.success() => (),
 //         Ok(_) => abort("Script execution failed with non-zero exit code", None),
-//         Err(e) => abort("Failed to execute script", Some(e))
+//         Err(e) => abort("Failed to execute script", Some(&e))
 //     }
 // }
