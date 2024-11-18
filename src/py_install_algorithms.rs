@@ -53,7 +53,7 @@ pub fn unpack_and_install_python_version_v1(
 
     println!("Configuring Python...");
 
-    let source_name = format!("Python{}", py_version);
+    let source_name = format!("Python-{}", py_version);
     let source_dir = temp_extract_path_dir.join(PathBuf::from(source_name));
     match process::Command::new("./configure")
         .stdin(process::Stdio::null())
