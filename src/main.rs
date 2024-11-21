@@ -6,6 +6,10 @@ mod commands;
 mod constants;
 mod utils;
 
+// help_template.rs
+// line 1059
+// spec_vals.push(format!("[aliases: {all_als}]"));
+
 fn main() {
     let matches = Command::new("pen")
         .bin_name("pen")
@@ -22,12 +26,12 @@ fn main() {
         // )
             .about("Create a virtual environment with a Python version")
             .long_about("Create a new virtual environment with the specified Python version in the current directory")
-            .arg(Arg::new("pyversion")
+            .arg(Arg::new("pyversion") // todo do we need required(true)
                 .help("Specify the Python version (ex. pen init 3.11.9)")
                 .index(1)))
-        .subcommand(Command::new("install")
-            .visible_alias("i")
-            .about("Install the .venv and all packages")
+        .subcommand(Command::new("sync")
+            .visible_alias("s")
+            .about("Syncs the installed packages and the .venv with the pen.toml file")
             .long_about("Creates the .venv according to the config"))
         .subcommand(Command::new("add")
             .about("Add a package to the current project")
@@ -42,8 +46,8 @@ fn main() {
                 .index(2)))
         .subcommand(Command::new("activate")
             .about("Activate the virtual environment")
-            .long_about("Activate the virtual environment in the current directory")
             .visible_alias("a"))
+            .long_about("Activate the virtual environment in the current directory")
         .subcommand(Command::new("list")
             .visible_alias("l")
             .about("List Python versions")
@@ -85,7 +89,7 @@ fn main() {
 
             commands::init(version);
         }
-        Some(("install", _args)) => {
+        Some(("sync", _args)) => {
             commands::install();
         }
         Some(("add", args)) => {
