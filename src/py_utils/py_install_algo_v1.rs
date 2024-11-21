@@ -4,6 +4,7 @@ use crate::constants::TMP_DIR;
 use crate::utils::{self, abort, catastrophic_failure};
 use std::{fs, path::PathBuf, process};
 
+// todo put a file in the py_utils dir with the job of selecting the file with the function with the appropriate python install algo version. I changed the name of this function but it was a mistake, remove the v1
 pub fn py_install_algo_v1(version: &Version) {
     let version_dir = utils::get_python_path(&version);
 

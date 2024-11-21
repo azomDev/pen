@@ -8,8 +8,8 @@ pub static ENV_DIR_NAME: &str = ".venv";
 // pub static UPDATE_SCRIPT_URL: &str = "todo";
 
 pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| match home::home_dir() {
-    Some(dir) => dir,
-    None => abort("Failed to get home directory", None),
+	Some(dir) => dir,
+	None => abort("Failed to get home directory", None),
 });
 
 // pub static PEN_DIR: LazyLock<PathBuf> = LazyLock::new(|| HOME_DIR.join(".pen"));

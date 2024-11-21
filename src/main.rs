@@ -8,12 +8,14 @@ mod env_utils;
 mod py_utils;
 mod utils;
 
+// todo a big question i have is should we not use abort and instead return errors and not exit whenever in the program?
+
 // help_template.rs
 // line 1059
 // spec_vals.push(format!("[aliases: {all_als}]"));
 
 fn main() {
-    let matches = Command::new("pen")
+	let matches = Command::new("pen")
         .bin_name("pen")
         .version("0.5.0")
         .about("pen is a tool for managing Python environments with different Python versions.")
@@ -70,56 +72,56 @@ fn main() {
 
         .get_matches();
 
-    let dependencies = vec!["curl", "tar", "make"]; // todo goal of having no system dependencies
-    utils::assert_dependencies(dependencies);
-    utils::assert_global_paths();
-    utils::clear_temp();
+	let dependencies = vec!["curl", "tar", "make"]; // todo goal of having no system dependencies
+	utils::assert_dependencies(dependencies);
+	utils::assert_global_paths();
+	utils::clear_temp();
 
-    match matches.subcommand() {
-        // Python
-        Some(("list", _args)) => {
-            commands::py_list_versions(); // py_list_versions
-        }
-        Some(("delete", args)) => {
-            let py_version: &String = args.get_one("pyversion").expect("required argument");
-            commands::py_delete_version(py_version); // py_delete_version
-        }
+	match matches.subcommand() {
+		// Python
+		Some(("list", _args)) => {
+			commands::py_list_versions(); // py_list_versions
+		}
+		Some(("delete", args)) => {
+			let py_version: &String = args.get_one("pyversion").expect("required argument");
+			commands::py_delete_version(py_version); // py_delete_version
+		}
 
-        //* Pen
-        Some(("init", args)) => {
-            let version = utils::user_string_to_version(args.get_one::<String>("pyversion"));
+		//* Pen
+		Some(("init", args)) => {
+			let version = utils::user_string_to_version(args.get_one::<String>("pyversion"));
 
-            commands::env_init(version); // env_init
-        }
-        Some(("sync", _args)) => {
-            commands::env_sync(); // env_sync
-        }
-        Some(("add", args)) => {
-            let name = args.get_one::<String>("name").expect("required argument");
-            let version = match args.get_one::<String>("version") {
-                Some(version) => match VersionReq::parse(version) {
-                    Ok(version) => version,
-                    Err(e) => abort("Invalid version range", Some(&e)),
-                },
-                None => VersionReq::default(),
-            };
+			commands::env_init(version); // env_init
+		}
+		Some(("sync", _args)) => {
+			commands::env_sync(); // env_sync
+		}
+		Some(("add", args)) => {
+			let name = args.get_one::<String>("name").expect("required argument");
+			let version = match args.get_one::<String>("version") {
+				Some(version) => match VersionReq::parse(version) {
+					Ok(version) => version,
+					Err(e) => abort("Invalid version range", Some(&e)),
+				},
+				None => VersionReq::default(),
+			};
 
-            commands::env_add(name, &version); // env_add
-        }
-        Some(("activate", _args)) => {
-            commands::pen_activate(); // env_activate
-        }
+			commands::env_add(name, &version); // env_add
+		}
+		Some(("activate", _args)) => {
+			commands::pen_activate(); // env_activate
+		}
 
-        // Installation
-        Some(("uninstall", _args)) => {
-            commands::pen_uninstall(); // pen_uninstall
-        }
-        Some(("update", _args)) => {
-            let message = "Updating pen automatically is not yet implemented. For now, uninstall pen with `pen uninstall` and download it again to update it. Updates will be coming in v1.0.0 so keep an eye on the \x1b]8;;https://github.com/azomDev/pen\x1b\\\x1b[34mgithub\x1b[0m\x1b]8;;\x1b\\";
-            println!("{}", message); // pen_update
-        }
-        _ => {
-            abort("Unknown command", None);
-        }
-    }
+		// Installation
+		Some(("uninstall", _args)) => {
+			commands::pen_uninstall(); // pen_uninstall
+		}
+		Some(("update", _args)) => {
+			let message = "Updating pen automatically is not yet implemented. For now, uninstall pen with `pen uninstall` and download it again to update it. Updates will be coming in v1.0.0 so keep an eye on the \x1b]8;;https://github.com/azomDev/pen\x1b\\\x1b[34mgithub\x1b[0m\x1b]8;;\x1b\\";
+			println!("{}", message); // pen_update
+		}
+		_ => {
+			abort("Unknown command", None);
+		}
+	}
 }
