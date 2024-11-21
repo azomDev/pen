@@ -1,8 +1,8 @@
 use semver::Version;
 
-use crate::utils::{
-    abort,
-    config::{create_config, write_config},
+use crate::{
+    env_utils::{create_config, write_config},
+    utils::abort,
 };
 use std::{env, fs};
 

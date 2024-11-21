@@ -1,14 +1,11 @@
 use semver::{Version, VersionReq};
 
-use crate::utils::{
-    self, abort,
-    package::{download_package, find_matching_package_version},
+use crate::{
+    env_utils::{download_package, find_matching_package_version, Config, Package},
+    py_utils::py_install_algo_v1,
+    utils::{self, abort},
 };
 use std::{fs, os::unix, path::PathBuf};
-
-use super::config::Config;
-use super::package::Package;
-use super::python::install_python;
 
 pub fn create_virtual_env(config: Config, destination_path: &PathBuf) {
     let py_dir = utils::get_python_path(&config.python);
@@ -76,7 +73,7 @@ pub fn link_python(version: &Version, destination_path: PathBuf, py_version_shor
     match fs::exists(&python_path) {
         Ok(exists) => {
             if !exists {
-                install_python(&version);
+                py_install_algo_v1(&version);
             }
 
             symlink(

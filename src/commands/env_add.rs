@@ -1,12 +1,11 @@
-use std::fs;
-
-use crate::utils::{
-    abort,
-    config::{find_project, read_config, write_config},
-    get_package_path,
-    package::{download_package, find_matching_package_version},
+use crate::{
+    env_utils::{
+        download_package, find_matching_package_version, find_project, read_config, write_config,
+    },
+    utils::{abort, get_package_path},
 };
 use semver::VersionReq;
+use std::fs;
 
 pub fn env_add(name: &str, version: &VersionReq) {
     let projet_path = find_project();

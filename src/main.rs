@@ -4,6 +4,8 @@ use utils::abort;
 
 mod commands;
 mod constants;
+mod env_utils;
+mod py_utils;
 mod utils;
 
 // help_template.rs

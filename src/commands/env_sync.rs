@@ -1,8 +1,5 @@
 use crate::constants::ENV_DIR_NAME;
-use crate::utils::{
-    config::{find_project, read_config},
-    virtual_env::create_virtual_env,
-};
+use crate::env_utils::{create_virtual_env, find_project, read_config};
 
 pub fn env_sync() {
     let projet_path = find_project();

@@ -4,7 +4,7 @@ use crate::constants::TMP_DIR;
 use crate::utils::{self, abort, catastrophic_failure};
 use std::{fs, path::PathBuf, process};
 
-pub fn install_python(version: &Version) {
+pub fn py_install_algo_v1(version: &Version) {
     let version_dir = utils::get_python_path(&version);
 
     match version_dir.try_exists() {

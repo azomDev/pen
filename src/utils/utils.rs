@@ -3,7 +3,7 @@ use semver::Version;
 use crate::constants::{
     HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR,
 };
-use crate::utils::package::Package;
+use crate::env_utils::Package;
 use std::{
     error::Error,
     fs,
