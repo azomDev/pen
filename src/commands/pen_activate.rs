@@ -5,7 +5,7 @@ use crate::utils::{
 };
 use std::process;
 
-pub fn activate() {
+pub fn pen_activate() {
     let project_path = find_project();
     let config = read_config(&project_path);
 

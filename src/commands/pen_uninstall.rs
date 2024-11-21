@@ -2,7 +2,7 @@ use crate::constants::{PEN_BIN_FILE, PEN_CONFIG_FILE, PEN_DIR};
 use crate::utils::{self, abort};
 use std::{fs, process};
 
-pub fn uninstall() {
+pub fn pen_uninstall() {
     if !utils::confirm_action("Are you sure you want to uninstall pen? (y/N)") {
         println!("Deletion canceled.");
         process::exit(0);

@@ -3,7 +3,7 @@
 // use std::os::unix::fs::PermissionsExt;
 // use std::{fs, path::PathBuf, process};
 
-// pub fn update_pen() {
+// pub fn pen_update() {
 //     println!("Updating pen...");
 
 //     let temp_update_script_path = TMP_DIR.join("update_script");

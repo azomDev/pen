@@ -2,7 +2,7 @@ use crate::constants::PYTHON_VERSIONS_DIR;
 use crate::utils::abort;
 use std::fs;
 
-pub fn list_py_versions() {
+pub fn py_list_versions() {
     println!("Listing installed Python versions:");
     let directory_entries = match fs::read_dir(&*PYTHON_VERSIONS_DIR) {
         Ok(entries) => entries,

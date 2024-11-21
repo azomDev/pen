@@ -6,7 +6,7 @@ use crate::utils::{
 };
 use std::{env, fs};
 
-pub fn init(version: Version) {
+pub fn env_init(version: Version) {
     let config = create_config(version);
 
     let project_path = match env::current_dir() {

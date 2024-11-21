@@ -1,7 +1,7 @@
 use crate::utils::{self, catastrophic_failure};
 use std::process;
 
-pub fn delete_py_version(py_version: &String) {
+pub fn py_delete_version(py_version: &String) {
     let py_version = utils::user_string_to_version(Some(py_version));
     let py_version_dir = utils::get_python_path(&py_version);
 

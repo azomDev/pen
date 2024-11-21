@@ -76,21 +76,21 @@ fn main() {
     match matches.subcommand() {
         // Python
         Some(("list", _args)) => {
-            commands::list_py_versions();
+            commands::py_list_versions(); // py_list_versions
         }
         Some(("delete", args)) => {
             let py_version: &String = args.get_one("pyversion").expect("required argument");
-            commands::delete_py_version(py_version);
+            commands::py_delete_version(py_version); // py_delete_version
         }
 
         //* Pen
         Some(("init", args)) => {
             let version = utils::user_string_to_version(args.get_one::<String>("pyversion"));
 
-            commands::init(version);
+            commands::env_init(version); // env_init
         }
         Some(("sync", _args)) => {
-            commands::install();
+            commands::env_sync(); // env_sync
         }
         Some(("add", args)) => {
             let name = args.get_one::<String>("name").expect("required argument");
@@ -102,19 +102,19 @@ fn main() {
                 None => VersionReq::default(),
             };
 
-            commands::add(name, &version);
+            commands::env_add(name, &version); // env_add
         }
         Some(("activate", _args)) => {
-            commands::activate();
+            commands::pen_activate(); // env_activate
         }
 
         // Installation
         Some(("uninstall", _args)) => {
-            commands::uninstall();
+            commands::pen_uninstall(); // pen_uninstall
         }
         Some(("update", _args)) => {
             let message = "Updating pen automatically is not yet implemented. For now, uninstall pen with `pen uninstall` and download it again to update it. Updates will be coming in v1.0.0 so keep an eye on the \x1b]8;;https://github.com/azomDev/pen\x1b\\\x1b[34mgithub\x1b[0m\x1b]8;;\x1b\\";
-            println!("{}", message);
+            println!("{}", message); // pen_update
         }
         _ => {
             abort("Unknown command", None);

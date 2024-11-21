@@ -8,7 +8,7 @@ use crate::utils::{
 };
 use semver::VersionReq;
 
-pub fn add(name: &str, version: &VersionReq) {
+pub fn env_add(name: &str, version: &VersionReq) {
     let projet_path = find_project();
     let mut config = read_config(&projet_path);
 
