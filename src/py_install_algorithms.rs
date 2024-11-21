@@ -1,3 +1,5 @@
+use semver::Version;
+
 use crate::{
     constants::TMP_DIR,
     utils::{self, abort, catastrophic_failure},
@@ -5,7 +7,7 @@ use crate::{
 use std::{fs, path::PathBuf, process};
 
 pub fn unpack_and_install_python_version_v1(
-    py_version: &str,
+    py_version: &Version,
     py_version_dir: &PathBuf,
     temp_tarball_path: &PathBuf,
 ) {
@@ -57,8 +59,8 @@ pub fn unpack_and_install_python_version_v1(
     let source_dir = temp_extract_path_dir.join(PathBuf::from(source_name));
     match process::Command::new("./configure")
         .stdin(process::Stdio::null())
-        .stdout(process::Stdio::null())
-        .stderr(process::Stdio::null())
+        // .stdout(process::Stdio::null())
+        // .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .arg(format!("--prefix={}", temp_python_version_dir.display()))
         .status()
@@ -78,8 +80,8 @@ pub fn unpack_and_install_python_version_v1(
 
     match process::Command::new("make")
         .stdin(process::Stdio::null())
-        .stdout(process::Stdio::null())
-        .stderr(process::Stdio::null())
+        // .stdout(process::Stdio::null())
+        // .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .status()
     {
@@ -98,8 +100,8 @@ pub fn unpack_and_install_python_version_v1(
 
     match process::Command::new("make")
         .stdin(process::Stdio::null())
-        .stdout(process::Stdio::null())
-        .stderr(process::Stdio::null())
+        // .stdout(process::Stdio::null())
+        // .stderr(process::Stdio::null())
         .current_dir(&source_dir)
         .arg("install")
         .status()
