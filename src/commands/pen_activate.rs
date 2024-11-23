@@ -12,7 +12,7 @@ pub fn pen_activate() {
 	let command = format!(
 		r#"
             VIRTUAL_ENV="{0}"
-            if [ -L "$VIRTUAL_ENV/bin/python3" ] && [ -f "$(readlink -f "$VIRTUAL_ENV/bin/python3")" ]; then
+            if [ ! -L "$VIRTUAL_ENV/bin/python3" ] || [ ! -f "$(readlink -f "$VIRTUAL_ENV/bin/python3")" ]; then
                 echo "python3 not found in $VIRTUAL_ENV/bin"
                 exit 1
             fi

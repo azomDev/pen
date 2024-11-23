@@ -16,6 +16,7 @@ pub fn create_virtual_env(config: Config, destination_path: &PathBuf) {
 	}
 	if let Err(e) = fs::write(
 		destination_path.join("pyvenv.cfg"),
+		// todo this pyenv.cfg file, when writen, has some spacing before the paragraph, needs fixing
 		format!(
 			r#" # Created using pen
 			home = {0}/bin
@@ -77,7 +78,7 @@ pub fn link_python(version: &Version, destination_path: PathBuf, py_version_shor
 			}
 
 			symlink(
-				python_path.join("bin/python"),
+				python_path.join("bin/python3"), // this is a little cursed since it is dependent on python3 so idk what to do
 				destination_path.join("python"),
 				Some(true),
 			);
