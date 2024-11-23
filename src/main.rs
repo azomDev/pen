@@ -73,7 +73,7 @@ fn main() {
 
         .get_matches();
 
-	let dependencies = vec!["curl", "tar", "make"]; // todo goal of having no system dependencies
+	let dependencies = vec!["tar", "make"]; // todo goal of having no system dependencies
 	utils::assert_dependencies(dependencies);
 	utils::assert_global_paths();
 	utils::clear_temp();
