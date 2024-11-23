@@ -1,7 +1,7 @@
-use crate::env_utils::{find_config, read_config};
+use crate::utils::{get_project_root, read_config};
 
 pub fn env_pkgs() {
-	let project_path = find_config();
+	let project_path = get_project_root();
 
 	let config = read_config(&project_path);
 

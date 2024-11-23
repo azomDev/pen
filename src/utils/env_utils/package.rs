@@ -132,7 +132,7 @@ pub fn find_matching_package_version(name: &str, version_requirements: &VersionR
 	};
 
 	Package {
-		name: String::from(&json.info.name),
+		name: String::from(&json.info.name), // todo why is this not just name?
 		version: best_version,
 	}
 }

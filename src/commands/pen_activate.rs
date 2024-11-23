@@ -1,12 +1,9 @@
 use crate::constants::ENV_DIR_NAME;
-use crate::{
-	env_utils::{find_config, read_config},
-	utils::abort,
-};
+use crate::utils::{abort, get_project_root, read_config};
 use std::process;
 
 pub fn pen_activate() {
-	let project_path = find_config();
+	let project_path = get_project_root();
 	let config = read_config(&project_path);
 
 	let command = format!(
@@ -34,10 +31,11 @@ pub fn pen_activate() {
 
             $SHELL
         "#,
-		project_path.join(ENV_DIR_NAME).to_string_lossy(),
+		project_path.join(ENV_DIR_NAME).to_string_lossy(), // todo .display() instead???
 		config.python
 	);
 
+	// todo make it work with plain sh
 	match process::Command::new("bash").arg("-c").arg(command).spawn() {
 		Ok(mut child) => child.wait().expect("Child process wasn't running."),
 		Err(e) => abort("Failed to start shell.", Some(&e)),

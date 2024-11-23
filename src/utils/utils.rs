@@ -1,9 +1,7 @@
-use semver::Version;
-
 use crate::constants::{
 	HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR,
 };
-use crate::env_utils::Package;
+use semver::Version;
 use std::{
 	error::Error,
 	fs,
@@ -55,38 +53,6 @@ pub fn assert_major_minor_patch(py_version: &str) {
 			abort(&format!("Version {} does not match the major.minor.patch format : Each part must be a valid integer", py_version), None);
 		}
 	}
-}
-
-/// Constructs the path to the directory for a specified Python version without validating the format of the version string.
-///
-/// # Arguments
-/// - `py_version`: A string slice representing the Python version, which has been
-///   validated to conform to the expected format (major.minor.patch).
-///
-/// # Output
-/// - A `PathBuf` pointing to the directory associated with the specified Python version.
-///
-/// # Termination
-/// - This function does not terminate.
-///
-/// # Guarantees
-/// - The returned path will be correctly formed if `py_version` is well formatted.
-///
-/// # Limitations
-/// - The function does not validate the contents of the constructed path or its existence.
-pub fn get_python_path(version: &Version) -> PathBuf {
-	PYTHON_VERSIONS_DIR.join(format!(
-		"{}.{}.{}",
-		version.major, version.minor, version.patch
-	))
-}
-
-// todo docstring
-pub fn get_package_path(package: &Package) -> PathBuf {
-	PYTHON_PACKAGES_DIR.join(format!(
-		"{}_{}.{}.{}",
-		package.name, package.version.major, package.version.minor, package.version.patch
-	))
 }
 
 /// Prompts the user to confirm an action.
@@ -178,53 +144,6 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 	}
 }
 
-/// Attempts to delete a specified directory.
-///
-/// # Arguments
-/// - `dir_path`: A `PathBuf` representing the directory to delete.
-///
-/// # Output
-/// - Returns `Ok(())` if the directory was successfully deleted or if it was already empty.
-/// - Returns an `Err` if the directory still exists after attempting deletion.
-///
-/// # Termination
-/// - This function does not terminate.
-///
-/// # Guarantees
-/// - If this function returns `Ok(())`, it guarantees that the directory no longer exists.
-pub fn try_deleting_dir(dir_path: &PathBuf) -> Result<(), std::io::Error> {
-	let delete_path = TMP_DIR.join("delete_path");
-	return try_deleting_dir_to_temp(dir_path, &delete_path);
-}
-
-pub fn try_deleting_dir_to_temp(
-	dir_path: &PathBuf,
-	temp_dir: &PathBuf,
-) -> Result<(), std::io::Error> {
-	if let Ok(exists) = dir_path.try_exists() {
-		if !exists {
-			return Ok(());
-		}
-	}
-	match temp_dir.try_exists() {
-		Ok(true) => fs::remove_dir_all(&temp_dir)?,
-		Ok(false) => (),
-		Err(e) => abort(
-			&format!("Unable to know if {} exists", temp_dir.display()),
-			Some(&e),
-		),
-	}
-	fs::rename(&dir_path, &temp_dir)?;
-	if dir_path.try_exists()? {
-		Err(io::Error::new(
-			io::ErrorKind::Other,
-			"Directory still exists",
-		))
-	} else {
-		Ok(())
-	}
-}
-
 /// Checks if the specified dependencies are installed by running their `--help` command.
 ///
 /// # Arguments
@@ -305,47 +224,6 @@ pub fn catastrophic_failure(message: &str, e: Option<&dyn Error>) -> ! {
 	}
 	process::exit(1);
 } // todo mabye possible to just print RED_BOLD then call abort idk
-
-/// Clears and recreates the temporary directory.
-///
-/// # Input
-/// - None.
-///
-/// # Output
-/// - None.
-///
-/// # Termination
-/// - If either removal or creation operations fail, the function prints an error message and terminates the process.
-pub fn clear_temp() {
-	let temp_is_empty = match (&*TMP_DIR).read_dir() {
-		Ok(mut read_dir) => read_dir.next().is_none(),
-		Err(e) => abort(
-			&format!(
-				"Failed to check contents of directory {}",
-				(*TMP_DIR).display()
-			),
-			Some(&e),
-		),
-	};
-
-	if temp_is_empty {
-		return;
-	}
-
-	if let Err(e) = fs::remove_dir_all(&*TMP_DIR) {
-		abort(
-			&format!("Failed to clear directory {}", (*TMP_DIR).display()),
-			Some(&e),
-		)
-	}
-
-	if let Err(e) = fs::create_dir(&*TMP_DIR) {
-		abort(
-			&format!("Failed to create directory {}", (*TMP_DIR).display()),
-			Some(&e),
-		)
-	}
-}
 
 /// Checks if the paths used in pen exists.
 ///

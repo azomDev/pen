@@ -1,44 +1,17 @@
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::path::PathBuf;
-use std::{env, fs};
 use toml;
 
+use crate::constants::CONFIG_FILE_NAME;
 use crate::utils::abort;
 
 // todo docstring
-pub fn create_config(py_version: Version) -> Config {
-	Config {
-		python: py_version,
-		packages: toml::Table::new(),
-	}
-}
-
-// todo docstring
-pub fn find_config() -> PathBuf {
-	let mut dir = match env::current_dir() {
-		Ok(dir) => dir,
-		Err(e) => abort("Failed to get current working directory.", Some(&e)),
-	};
-
-	loop {
-		match fs::exists(dir.join("pen.toml")) {
-			Ok(true) => return dir,
-			Ok(false) => {
-				if !dir.pop() {
-					abort("Couldn't find a pen.toml file.", None);
-				}
-			}
-			Err(e) => abort("Failed to find a pen.toml file.", Some(&e)),
-		};
-	}
-}
-
-// todo docstring
 pub fn read_config(project_path: &PathBuf) -> Config {
-	let config_path = project_path.join("pen.toml");
+	let config_path = project_path.join(&*CONFIG_FILE_NAME);
 	match fs::read_to_string(&config_path) {
-		Ok(contents) => match toml::de::from_str::<Config>(&contents) {
+		Ok(contents) => match toml::from_str::<Config>(&contents) {
 			Ok(toml) => toml,
 			Err(e) => abort(
 				&format!("Couldn't parse {}.", config_path.display()),
@@ -54,7 +27,7 @@ pub fn read_config(project_path: &PathBuf) -> Config {
 
 // todo docstring
 pub fn write_config(project_path: PathBuf, config: Config) {
-	match toml::ser::to_string_pretty(&config) {
+	match toml::to_string_pretty(&config) {
 		Ok(toml) => {
 			if let Err(e) = fs::write(project_path.join("pen.toml"), toml) {
 				abort(
@@ -75,6 +48,6 @@ pub fn write_config(project_path: PathBuf, config: Config) {
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-	pub python: Version,
+	pub python: Version, // todo do we want to have instead a VersionReq?
 	pub packages: toml::Table,
 }
