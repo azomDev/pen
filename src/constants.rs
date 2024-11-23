@@ -1,10 +1,9 @@
-#![allow(dead_code)]
-
 use crate::utils::abort;
 use home;
 use std::{path::PathBuf, sync::LazyLock};
 
 pub static ENV_DIR_NAME: &str = ".venv";
+pub static CONFIG_FILE_NAME: &str = "pen.toml";
 // pub static UPDATE_SCRIPT_URL: &str = "todo";
 
 pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| match home::home_dir() {

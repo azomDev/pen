@@ -1,13 +1,12 @@
+use crate::utils::{abort, write_config, Config};
 use semver::Version;
-
-use crate::{
-	env_utils::{create_config, write_config},
-	utils::abort,
-};
 use std::{env, fs};
 
 pub fn env_init(version: Version) {
-	let config = create_config(version);
+	let config = Config {
+		python: version,
+		packages: toml::Table::new(),
+	};
 
 	let project_path = match env::current_dir() {
 		Ok(dir) => dir,

@@ -4,8 +4,6 @@ use utils::abort;
 
 mod commands;
 mod constants;
-mod env_utils;
-mod py_utils;
 mod utils;
 
 // todo a big question i have is should we not use abort and instead return errors and not exit whenever in the program?

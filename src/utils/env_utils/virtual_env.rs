@@ -1,13 +1,12 @@
 use semver::{Version, VersionReq};
 
-use crate::{
-	env_utils::{download_package, find_matching_package_version, Config, Package},
-	py_utils::py_install_algo_v1,
-	utils::{self, abort},
+use crate::utils::{
+	self, abort, download_package, find_matching_package_version, py_install_algo_v1, Config,
+	Package,
 };
 use std::{fs, os::unix, path::PathBuf};
 
-pub fn create_virtual_env(config: Config, destination_path: &PathBuf) {
+pub fn create_or_update_virtual_env(config: Config, destination_path: &PathBuf) {
 	let py_dir = utils::get_python_path(&config.python);
 	let py_version_short = format!("{}.{}", config.python.major, config.python.minor);
 
@@ -16,7 +15,7 @@ pub fn create_virtual_env(config: Config, destination_path: &PathBuf) {
 	}
 	if let Err(e) = fs::write(
 		destination_path.join("pyvenv.cfg"),
-		// todo this pyenv.cfg file, when writen, has some spacing before the paragraph, needs fixing
+		// todo this pyenv.cfg file, when writen, has some spacing beforeeach line of the paragraph, needs fixing
 		format!(
 			r#" # Created using pen
 			home = {0}/bin
