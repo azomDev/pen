@@ -108,39 +108,15 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 		}
 	}
 
-	match process::Command::new("curl")
-		.stdin(process::Stdio::null())
-		.stdout(process::Stdio::null())
-		.stderr(process::Stdio::null())
-		.arg("-4")
-		.arg("-s")
-		.arg("-o")
-		.arg(file_path)
-		.arg("-L")
-		.arg(file_url)
-		.status()
-	{
-		Ok(status) if status.success() => (),
-		Ok(_) => abort(
-			&format!(
-				"Failed to download file from {} to {}",
-				file_url,
-				file_path.display()
-			),
-			None,
-		),
-		Err(e) => abort(
-			&format!(
-				"Failed to extract Python version {} to {}",
-				file_url,
-				file_path.display()
-			),
-			Some(&e),
-		),
-	}
+	let request = match minreq::get(file_url).send() {
+		Ok(res) if (res.status_code == 200) => res,
+		Ok(_) => abort("todo", None),
+		Err(e) => abort("todo", Some(&e)),
+	};
 
-	if !file_path.exists() || !file_path.is_file() {
-		abort("Downloaded file was not found", None);
+	match fs::write(file_path, request.as_bytes()) {
+		Ok(()) => (),
+		Err(e) => abort("todo", Some(&e)),
 	}
 }
 
