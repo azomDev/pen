@@ -4,3 +4,4 @@ target/
 .vscode/
 .venv/
 ideas.txt
+Cargo.lock
