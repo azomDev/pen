@@ -120,6 +120,75 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 	}
 }
 
+/// Takes the iputted version and returns the current patch of python
+///
+/// # Arguments
+/// - `version` : a string inputted to be checked
+/// 
+/// # Output 
+/// - `patch` : the patch found from the provided version
+///
+/// #Termination
+/// - An error should be thrown if the file for checking is not found, or if the version is not found.
+///
+/// # Guarentees
+/// - If the file and version are found, the patch exists
+///
+/// # Limitations
+/// - The function assumes that all data passed to it is in the correct format and clean
+pub fn fetch_current(version: &str) {
+	// get the file containing the versions
+	use serde_json::Value;
+
+	// Value could be any type that implements Deserialize!
+	let result = minreq::get("https://endoflife.date/api/python.json").send().unwrap().json::<Value>().unwrap();
+	//println!("User name is '{}'", user["name"]);
+
+    //let result = minreq::get("https://endoflife.date/api/python.json").send();
+
+	//let json: serde_json::Value = result.json();
+
+	// match Patch::parse(patch) {
+	// 	Ok(patch) => patch,
+	// 	Error(e) => abort(&format!("error"), Some(&e))
+	// };
+
+	println!("{:?}", result);
+
+	// let response = minreq::get("http://httpbin.org/anything")
+    //     .with_body("Hello, world!")
+    //     .send()?;
+
+    // // httpbin.org/anything returns the body in the json field "data":
+    // let json: serde_json::Value = response.json()?;
+    // println!("\"Hello, world!\" == {}", json["data"]);
+
+    // Ok(())
+}
+// use minreq;
+// use serde::Deserialize;
+// #[derive(Deserialize, Debug)]
+// struct PythonVersion {
+//     version: String,
+//     end_of_life: String,
+// }
+
+// fn fetch_current() -> Result<(), Box<dyn std::error::Error>> {
+//     let url = "https://endoflife.date/api/python.json";
+    
+//     // Send the GET request and deserialize the response directly into the Vec<PythonVersion>
+//     let response: Vec<PythonVersion> = minreq::get(url)
+//         .send()?
+//         .json()?;
+    
+//     // Print the parsed JSON
+//     for version in response {
+//         println!("Version: {}, End of Life: {}", version.version, version.end_of_life);
+//     }
+
+//     Ok(())
+// }
+
 /// Checks if the specified dependencies are installed by running their `--help` command.
 ///
 /// # Arguments
