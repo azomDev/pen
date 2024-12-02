@@ -123,10 +123,10 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// Takes the iputted version and returns the current patch of python
 ///
 /// # Arguments
-/// - `version` : a string inputted to be checked
+/// - `patch` : a string representing the "x.y" part of the release
 /// 
 /// # Output 
-/// - `patch` : the patch found from the provided version
+/// - Will output the full version from provided
 ///
 /// #Termination
 /// - An error should be thrown if the file for checking is not found, or if the version is not found.
@@ -136,58 +136,34 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 ///
 /// # Limitations
 /// - The function assumes that all data passed to it is in the correct format and clean
-pub fn fetch_current(version: &str) {
+pub fn fetch_current(patch : &str) -> Option<String> {
+	// Currently a JSON file from endoflife: https://endoflife.date/python
+	use serde_json::{Value};
+
 	// get the file containing the versions
-	use serde_json::Value;
-
-	// Value could be any type that implements Deserialize!
+	// also specifies that the file returned is serde_json
 	let result = minreq::get("https://endoflife.date/api/python.json").send().unwrap().json::<Value>().unwrap();
-	//println!("User name is '{}'", user["name"]);
 
-    //let result = minreq::get("https://endoflife.date/api/python.json").send();
-
-	//let json: serde_json::Value = result.json();
-
-	// match Patch::parse(patch) {
-	// 	Ok(patch) => patch,
-	// 	Error(e) => abort(&format!("error"), Some(&e))
-	// };
-
-	println!("{:?}", result);
-
-	// let response = minreq::get("http://httpbin.org/anything")
-    //     .with_body("Hello, world!")
-    //     .send()?;
-
-    // // httpbin.org/anything returns the body in the json field "data":
-    // let json: serde_json::Value = response.json()?;
-    // println!("\"Hello, world!\" == {}", json["data"]);
-
-    // Ok(())
+	// Loop through the JSON to get the needed "latest"
+	// First, we create a reference for the file that the JSON is in, since it does not like looping through it itself
+	if let serde_json::Value::Array(ref json) = result {
+		// Since the JSON is an array of objects, we need to loop through the outer array
+		for i in json {
+			// Now we loop through the "key: value"s of each object
+			for (key, value) in i.as_object().unwrap() {
+				// We check if the "cycle" key equals the inputted "value"
+				if (key == "cycle") && (value == patch){
+					// returns the latest
+					return Some(i["latest"].to_string());
+				}
+			}
+		}
+	}
+	
+	// If nothing is found, returns None
+	return None;
 }
-// use minreq;
-// use serde::Deserialize;
-// #[derive(Deserialize, Debug)]
-// struct PythonVersion {
-//     version: String,
-//     end_of_life: String,
-// }
 
-// fn fetch_current() -> Result<(), Box<dyn std::error::Error>> {
-//     let url = "https://endoflife.date/api/python.json";
-    
-//     // Send the GET request and deserialize the response directly into the Vec<PythonVersion>
-//     let response: Vec<PythonVersion> = minreq::get(url)
-//         .send()?
-//         .json()?;
-    
-//     // Print the parsed JSON
-//     for version in response {
-//         println!("Version: {}, End of Life: {}", version.version, version.end_of_life);
-//     }
-
-//     Ok(())
-// }
 
 /// Checks if the specified dependencies are installed by running their `--help` command.
 ///
