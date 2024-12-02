@@ -9,6 +9,7 @@ use std::{
 	path::PathBuf,
 	process,
 };
+use serde_json::{Value};
 
 // todo docstring
 pub fn user_string_to_version(version: Option<&String>) -> Version {
@@ -123,7 +124,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// Takes the iputted version and returns the current patch of python
 ///
 /// # Arguments
-/// - `patch` : a string representing the "x.y" part of the release
+/// - `major_minor_version` : a string representing the "x.y" part of the release
 /// 
 /// # Output 
 /// - Will output the full version from provided
@@ -136,25 +137,31 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 ///
 /// # Limitations
 /// - The function assumes that all data passed to it is in the correct format and clean
-pub fn fetch_current(patch : &str) -> Option<String> {
+pub fn fetch_current(major_minor_version : &str) -> Option<String> {
 	// Currently a JSON file from endoflife: https://endoflife.date/python
-	use serde_json::{Value};
-
+	
 	// get the file containing the versions
 	// also specifies that the file returned is serde_json
-	let result = minreq::get("https://endoflife.date/api/python.json").send().unwrap().json::<Value>().unwrap();
+	let request = match minreq::get("https://endoflife.date/api/python.json").send() {
+		Ok(res) if (res.status_code == 200) => res,
+		Ok(_) => abort("todo", None),
+		Err(e) =>abort("todo", Some(&e))
+	};
+
+	let json = request.json::<Value>().unwrap();
+	
 
 	// Loop through the JSON to get the needed "latest"
 	// First, we create a reference for the file that the JSON is in, since it does not like looping through it itself
-	if let serde_json::Value::Array(ref json) = result {
+	if let serde_json::Value::Array(iterable) = json {
 		// Since the JSON is an array of objects, we need to loop through the outer array
-		for i in json {
+		for item in iterable {
 			// Now we loop through the "key: value"s of each object
-			for (key, value) in i.as_object().unwrap() {
+			for (key, value) in item.as_object().unwrap() {
 				// We check if the "cycle" key equals the inputted "value"
-				if (key == "cycle") && (value == patch){
+				if (key == "cycle") && (value == major_minor_version){
 					// returns the latest
-					return Some(i["latest"].to_string());
+					return Some(item["latest"].to_string());
 				}
 			}
 		}
