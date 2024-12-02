@@ -133,7 +133,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// - An error should be thrown if the file for checking is not found, or if the version is not found.
 ///
 /// # Limitations
-/// - The function assumes that all data passed to it is in the correct format and clean
+/// - The function assumes that all data passed to it is in the correct format
 pub fn fetch_current(major_minor_version : &str) -> Option<String> {
 	// Currently a JSON file from endoflife: https://endoflife.date/python
 	
