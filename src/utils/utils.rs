@@ -132,9 +132,6 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// #Termination
 /// - An error should be thrown if the file for checking is not found, or if the version is not found.
 ///
-/// # Guarentees
-/// - If the file and version are found, the patch exists
-///
 /// # Limitations
 /// - The function assumes that all data passed to it is in the correct format and clean
 pub fn fetch_current(major_minor_version : &str) -> Option<String> {
