@@ -135,10 +135,6 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// # Limitations
 /// - The function assumes that all data passed to it is in the correct format
 pub fn fetch_current(major_minor_version : &str) -> Option<String> {
-	// Currently a JSON file from endoflife: https://endoflife.date/python
-	
-	// get the file containing the versions
-	// also specifies that the file returned is serde_json
 	let response = match minreq::get("https://endoflife.date/api/python.json").send() {
 		Ok(res) if (res.status_code == 200) => res,
 		Ok(_) => abort("todo", None),
@@ -147,15 +143,9 @@ pub fn fetch_current(major_minor_version : &str) -> Option<String> {
 
 	let json = response.json::<Value>().unwrap();
 	
-
-	// Loop through the JSON to get the needed "latest"
-	// First, we create a reference for the file that the JSON is in, since it does not like looping through it itself
 	if let Some(json) = json.as_array() {
-		// Since the JSON is an array of objects, we need to loop through the outer array
 		for item in json {
-			// Now we loop through the "key: value"s of each object
 			for (key, value) in item.as_object().unwrap() {
-				// We check if the "cycle" key equals the inputted "value"
 				if (key == "cycle") && (value == major_minor_version){
 					// returns the latest
 					return Some(item["latest"].to_string());
@@ -163,8 +153,6 @@ pub fn fetch_current(major_minor_version : &str) -> Option<String> {
 			}
 		}
 	}
-	
-	// If nothing is found, returns None
 	return None;
 }
 
