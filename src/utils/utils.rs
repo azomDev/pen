@@ -9,6 +9,7 @@ use std::{
 	path::PathBuf,
 	process,
 };
+use serde_json::{Value};
 
 // todo docstring
 pub fn user_string_to_version(version: Option<&String>) -> Version {
@@ -119,6 +120,42 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 		Err(e) => abort("todo", Some(&e)),
 	}
 }
+
+/// Takes the major and minor version and returns the full version using https://endoflife.date/api/python.json
+///
+/// # Arguments
+/// - `major_minor_version` : a string representing the "x.y" part of the release
+/// 
+/// # Output 
+/// - Will output the full version from the provided major & minor
+///
+/// #Termination
+/// - An error should be thrown if the file for checking is not found, or if the version is not found.
+///
+/// # Limitations
+/// - The function assumes that all data passed to it is in the correct format
+pub fn get_full_python_version(major_minor_version : &str) -> Option<String> {
+	let response = match minreq::get("https://endoflife.date/api/python.json").send() {
+		Ok(res) if (res.status_code == 200) => res,
+		Ok(_) => abort("todo", None),
+		Err(e) =>abort("todo", Some(&e))
+	};
+
+	let json = response.json::<Value>().unwrap();
+	
+	if let Some(json) = json.as_array() {
+		for item in json {
+			for (key, value) in item.as_object().unwrap() {
+				if (key == "cycle") && (value == major_minor_version){
+					// returns the latest
+					return Some(item["latest"].to_string());
+				}
+			}
+		}
+	}
+	return None;
+}
+
 
 /// Checks if the specified dependencies are installed by running their `--help` command.
 ///
