@@ -1,7 +1,6 @@
 use clap::{Arg, Command};
 use semver::VersionReq;
 use utils::abort;
-use std::iter;
 
 mod commands;
 mod constants;
