@@ -127,7 +127,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 /// - `major_minor_version` : a string representing the "x.y" part of the release
 /// 
 /// # Output 
-/// - Will output the full version from provided
+/// - Will output the full version from the provided major & minor
 ///
 /// #Termination
 /// - An error should be thrown if the file for checking is not found, or if the version is not found.
