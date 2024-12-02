@@ -121,7 +121,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 	}
 }
 
-/// Takes the iputted version and returns the current patch of python
+/// Takes the major and minor version and returns the full version using https://endoflife.date/api/python.json
 ///
 /// # Arguments
 /// - `major_minor_version` : a string representing the "x.y" part of the release
