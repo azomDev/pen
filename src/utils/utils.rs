@@ -134,7 +134,7 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) {
 ///
 /// # Limitations
 /// - The function assumes that all data passed to it is in the correct format
-pub fn fetch_current(major_minor_version : &str) -> Option<String> {
+pub fn get_full_python_version(major_minor_version : &str) -> Option<String> {
 	let response = match minreq::get("https://endoflife.date/api/python.json").send() {
 		Ok(res) if (res.status_code == 200) => res,
 		Ok(_) => abort("todo", None),
