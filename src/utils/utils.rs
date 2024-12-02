@@ -153,9 +153,9 @@ pub fn fetch_current(major_minor_version : &str) -> Option<String> {
 
 	// Loop through the JSON to get the needed "latest"
 	// First, we create a reference for the file that the JSON is in, since it does not like looping through it itself
-	if let serde_json::Value::Array(iterable) = json {
+	if let Some(json) = json.as_array() {
 		// Since the JSON is an array of objects, we need to loop through the outer array
-		for item in iterable {
+		for item in json {
 			// Now we loop through the "key: value"s of each object
 			for (key, value) in item.as_object().unwrap() {
 				// We check if the "cycle" key equals the inputted "value"
