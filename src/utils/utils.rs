@@ -142,13 +142,13 @@ pub fn fetch_current(major_minor_version : &str) -> Option<String> {
 	
 	// get the file containing the versions
 	// also specifies that the file returned is serde_json
-	let request = match minreq::get("https://endoflife.date/api/python.json").send() {
+	let response = match minreq::get("https://endoflife.date/api/python.json").send() {
 		Ok(res) if (res.status_code == 200) => res,
 		Ok(_) => abort("todo", None),
 		Err(e) =>abort("todo", Some(&e))
 	};
 
-	let json = request.json::<Value>().unwrap();
+	let json = response.json::<Value>().unwrap();
 	
 
 	// Loop through the JSON to get the needed "latest"
