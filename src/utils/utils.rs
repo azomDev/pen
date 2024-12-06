@@ -1,13 +1,13 @@
 use crate::constants::{HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR};
 use crate::utils::{error, guard, AnyError, Config, Package};
 use semver::Version;
+use serde_json::Value;
 use std::{
 	fs,
 	io::{self, Write},
 	path::PathBuf,
 	process,
 };
-use serde_json::{Value};
 
 // todo docstring
 pub fn user_string_to_version(version: &String) -> Result<Version, AnyError> {
@@ -104,20 +104,19 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) -> Result<(), AnyError
 
 	let response = guard!(minreq::get(file_url).send(), "todo");
 
-	if response.status_code == 200 {
-		guard!(fs::write(file_path, response.as_bytes()), "todo");
-		return Ok(());
-	} else {
+	if response.status_code != 200 {
 		return error!("todo");
 	}
+	guard!(fs::write(file_path, response.as_bytes()), "todo");
+	return Ok(());
 }
 
 /// Takes the major and minor version and returns the full version using https://endoflife.date/api/python.json
 ///
 /// # Arguments
 /// - `major_minor_version` : a string representing the "x.y" part of the release
-/// 
-/// # Output 
+///
+/// # Output
 /// - Will output the full version from the provided major & minor
 ///
 /// #Termination
@@ -125,28 +124,32 @@ pub fn download_file(file_url: &str, file_path: &PathBuf) -> Result<(), AnyError
 ///
 /// # Limitations
 /// - The function assumes that all data passed to it is in the correct format
-pub fn get_full_python_version(major_minor_version : &str) -> Option<String> {
-	let response = match minreq::get("https://endoflife.date/api/python.json").send() {
-		Ok(res) if (res.status_code == 200) => res,
-		Ok(_) => abort("todo", None),
-		Err(e) =>abort("todo", Some(&e))
-	};
+pub fn get_full_python_version(major_minor_version: &str) -> Result<Option<String>, AnyError> {
+	let request = minreq::get("https://endoflife.date/api/python.json").with_header("Accept", "application/json");
+	let response = guard!(request.send(), "todo");
+	if response.status_code != 200 {
+		return error!("todo");
+	}
 
-	let json = response.json::<Value>().unwrap();
-	
+	let json = guard!(response.json::<Value>(), "Failed to parse response into json.");
+
 	if let Some(json) = json.as_array() {
 		for item in json {
-			for (key, value) in item.as_object().unwrap() {
-				if (key == "cycle") && (value == major_minor_version){
-					// returns the latest
-					return Some(item["latest"].to_string());
+			match item.as_object() {
+				Some(items) => {
+					for (key, value) in items {
+						if (key == "cycle") && (value == major_minor_version) {
+							// returns the latest
+							return Ok(Some(item["latest"].to_string()));
+						}
+					}
 				}
+				None => return error!("todo"),
 			}
 		}
 	}
-	return None;
+	return Ok(None);
 }
-
 
 /// Checks if the specified dependencies are installed by running their `--help` command.
 ///
