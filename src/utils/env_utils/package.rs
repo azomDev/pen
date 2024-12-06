@@ -16,17 +16,14 @@ pub fn download_package(package: &Package, py_version: &Version) -> Result<(), A
 		Some(url) => url,
 		None => return error!("This package doesn't seem compatible with your os."),
 	};
-	// let request = minreq::get(&url).with_header("Accept", "application/json");
-	// let response = guard!(request.send(), "Couldn't request PyPi");
-	let request = ureq::get(&url).set("Accept", "application/json");
-	let response = guard!(request.call(), "Couldn't request PyPi");
+	let request = minreq::get(&url).with_header("Accept", "application/json");
+	let response = guard!(request.send(), "Couldn't request PyPi");
 
-	if response.status() != 200 {
-		return error!("Package download request failed with status: {}.", response.status());
+	if response.status_code != 200 {
+		return error!("Package download request failed with status: {}.", response.status_code);
 	}
 
-	let mut buffer = Vec::new();
-	guard!(response.into_reader().read_to_end(&mut buffer), "Couldn't read the body of the response.");
+	let buffer = response.into_bytes();
 	let mut zip = guard!(ZipArchive::new(Cursor::new(buffer)), "Couldn't uncompress {}.", package.name);
 
 	let extract_dir = utils::get_package_path(&package);
