@@ -51,15 +51,15 @@ pub fn download_package(package: &Package, py_version: &Version) -> Result<(), A
 
 // todo docstring
 pub fn find_matching_package_version(name: &str, version_requirements: &VersionReq) -> Result<Package, AnyError> {
-	let request = ureq::get(&format!("https://pypi.org/pypi/{}/json", name)).set("Accept", "application/json");
-	let response = guard!(request.call(), "Couldn't request PyPi.");
-
-	if response.status() != 200 {
-		return error!("Package info request failed with status: {}.", response.status());
+	let url = format!("https://pypi.org/pypi/{}/json", name);
+	let request = minreq::get(&url).with_header("Accept", "application/json");
+	let response = guard!(request.send(), "Couldn't request PyPi");
+	if response.status_code != 200 {
+		return error!("Package info request failed with status: {}.", response.status_code);
 	}
 
 	// Parse the response as JSON if expected
-	let json = guard!(response.into_json::<ApiPackageResponse>(), "Received an invalid response from PyPi.");
+	let json = guard!(response.json::<ApiPackageResponse>(), "Received an invalid response from PyPi.");
 
 	let best_version = match json
 		.releases
@@ -83,18 +83,15 @@ pub fn find_matching_package_version(name: &str, version_requirements: &VersionR
 
 // todo docstring
 fn find_package_download_url(package: &Package, py_version: &Version) -> Result<Option<String>, AnyError> {
-	let request = ureq::get(&format!("https://pypi.org/pypi/{}/{}/json", package.name, package.version)).set("Accept", "application/json");
-	let response = guard!(request.call(), "Couldn't request PyPi.");
-
-	if response.status() != 200 {
-		return error!("Package info request failed with status: {}.", response.status());
+	let url = format!("https://pypi.org/pypi/{}/{}/json", package.name, package.version);
+	let request = minreq::get(&url).with_header("Accept", "application/json");
+	let response = guard!(request.send(), "Couldn't request PyPi");
+	if response.status_code != 200 {
+		return error!("Package info request failed with status: {}.", response.status_code);
 	}
 
 	// Parse the response as JSON if expected
-	let json = guard!(
-		response.into_json::<ApiPackageVersionResponse>(),
-		"Received an invalid response from PyPi"
-	);
+	let json = guard!(response.json::<ApiPackageVersionResponse>(), "Received an invalid response from PyPi");
 
 	let python = format!("py{}{}", py_version.major, py_version.minor);
 	let arch = match OS {
