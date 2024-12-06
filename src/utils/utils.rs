@@ -1,9 +1,7 @@
-use crate::constants::{
-	HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR,
-};
+use crate::constants::{HOME_DIR, PEN_CONFIG_FILE, PEN_DIR, PYTHON_PACKAGES_DIR, PYTHON_VERSIONS_DIR, TMP_DIR};
+use crate::utils::{error, guard, AnyError, Config, Package};
 use semver::Version;
 use std::{
-	error::Error,
 	fs,
 	io::{self, Write},
 	path::PathBuf,
@@ -12,49 +10,50 @@ use std::{
 use serde_json::{Value};
 
 // todo docstring
-pub fn user_string_to_version(version: Option<&String>) -> Version {
-	match version {
-		Some(version) => {
-			assert_major_minor_patch(version);
-			match Version::parse(version) {
-				Ok(version) => version,
-				Err(e) => abort(&format!("Version {} is invalid.", version), Some(&e)),
-			}
-		}
-		// TODO: Ask the user? Or maybe pick the most recent version?
-		None => Version::parse("3.12.3").unwrap(),
-	}
+pub fn user_string_to_version(version: &String) -> Result<Version, AnyError> {
+	let version = guard!(Version::parse(version), "Version parsing failed for version {version}");
+	return Ok(version);
+	// match version {
+	// 	Some(version) => {
+	// 		let version = guard!(Version::parse(version), "Version parsing failed for version {version}");
+	// 		return Ok(version);
+	// 	}
+	// 	None => {
+	// 		todo!("pick the most recent version either from the web or the system wide installation")
+	// 	}
+	// }
 }
 
-/// Asserts that a given version string adheres to the "major.minor.patch" format.
-///
-/// # Arguments
-/// - `py_version`: A string slice representing the version number.
-///
-/// # Output
-/// - None.
-///
-/// # Termination
-/// - This function terminates if the `py_version` provided is not well formed.
-///
-/// # Guarantees
-/// - If this function returns, it guarantees that `py_version` adheres to the format.
-///
-/// # Limitations
-/// - The function does not validate if the given version is a valid Python version
-pub fn assert_major_minor_patch(py_version: &str) {
-	let parts = py_version.split('.').collect::<Vec<&str>>();
+// /// Asserts that a given version string adheres to the "major.minor.patch" format.
+// ///
+// /// # Arguments
+// /// - `py_version`: A string slice representing the version number.
+// ///
+// /// # Output
+// /// - None.
+// ///
+// /// # Termination
+// /// - This function terminates if the `py_version` provided is not well formed.
+// ///
+// /// # Guarantees
+// /// - If this function returns, it guarantees that `py_version` adheres to the format.
+// ///
+// /// # Limitations
+// /// - The function does not validate if the given version is a valid Python version
+// pub fn assert_major_minor_patch(py_version: &str) -> Result<(), AnyError> {
+// 	let parts = py_version.split('.').collect::<Vec<&str>>();
 
-	if parts.len() != 3 {
-		abort(&format!("Version {} does not match the major.minor.patch format : Version must have exactly three parts", py_version), None);
-	}
+// 	if parts.len() != 3 {
+// 		error!();
+// 	}
 
-	for part in parts {
-		if part.parse::<u64>().is_err() {
-			abort(&format!("Version {} does not match the major.minor.patch format : Each part must be a valid integer", py_version), None);
-		}
-	}
-}
+// 	for part in parts {
+// 		// debug!("Parsing {part} into u64");
+// 		guard!(part.parse::<u64>(), "todo");
+// 		// "Version {} does not match the major.minor.patch format : Each part must be a valid integer"
+// 	}
+// 	return Ok(());
+// }
 
 /// Prompts the user to confirm an action.
 ///
@@ -66,21 +65,16 @@ pub fn assert_major_minor_patch(py_version: &str) {
 ///
 /// # Termination
 /// - This function may terminate due to issues with input/output streams.
-pub fn confirm_action(prompt: &str) -> bool {
+pub fn confirm_action(prompt: &str) -> Result<bool, AnyError> {
 	println!("{}", prompt);
 
-	// Flush stdout to ensure the prompt appears before reading input
-	if let Err(e) = io::stdout().flush() {
-		abort("Failed to flush standart output", Some(&e));
-	}
+	io::stdout().flush()?;
 
-	// Read user input
 	let mut user_input = String::new();
-	if let Err(e) = io::stdin().read_line(&mut user_input) {
-		abort("Failed to read standart input", Some(&e));
-	}
 
-	return user_input.trim().eq_ignore_ascii_case("y");
+	io::stdin().read_line(&mut user_input)?;
+
+	return Ok(user_input.trim().eq_ignore_ascii_case("y"));
 }
 
 /// Downloads a file from a specified URL to a given file path. If a file already exists at the specified path, it will be deleted before the new file is downloaded
@@ -102,22 +96,19 @@ pub fn confirm_action(prompt: &str) -> bool {
 ///
 /// # Limitations
 /// - The function does not validate the contents of the downloaded file.
-pub fn download_file(file_url: &str, file_path: &PathBuf) {
-	if let Err(e) = fs::remove_file(file_path) {
-		if e.kind() != io::ErrorKind::NotFound {
-			abort("Unable to remove file", Some(&e));
-		}
+pub fn download_file(file_url: &str, file_path: &PathBuf) -> Result<(), AnyError> {
+	match guard!(fs::exists(file_path), "todo") {
+		true => guard!(fs::remove_file(file_path), "todo"),
+		false => (),
 	}
 
-	let request = match minreq::get(file_url).send() {
-		Ok(res) if (res.status_code == 200) => res,
-		Ok(_) => abort("todo", None),
-		Err(e) => abort("todo", Some(&e)),
-	};
+	let response = guard!(minreq::get(file_url).send(), "todo");
 
-	match fs::write(file_path, request.as_bytes()) {
-		Ok(()) => (),
-		Err(e) => abort("todo", Some(&e)),
+	if response.status_code == 200 {
+		guard!(fs::write(file_path, response.as_bytes()), "todo");
+		return Ok(());
+	} else {
+		return error!("todo");
 	}
 }
 
@@ -173,70 +164,26 @@ pub fn get_full_python_version(major_minor_version : &str) -> Option<String> {
 ///
 /// # Limitations
 /// - The function only checks the result of the `--help` command for each dependencies.
-pub fn assert_dependencies(dependencies: Vec<&'static str>) {
+pub fn assert_dependencies(dependencies: Vec<&'static str>) -> Result<(), AnyError> {
 	for dep in dependencies {
-		match process::Command::new("sh")
+		let command = process::Command::new("sh")
 			.arg("-c")
 			.arg(format!("command -v {}", dep))
 			.stdin(process::Stdio::null())
 			.stdout(process::Stdio::null())
 			.stderr(process::Stdio::null())
-			.status()
-		{
-			Ok(status) if status.success() => continue,
-			Ok(_) => abort(&format!("{} is not installed", dep), None),
-			Err(e) => abort(
-				&format!("Failed to check if {} is installed", dep),
-				Some(&e),
-			),
+			.status();
+
+		let sucess = guard!(command, "todo");
+
+		if sucess.success() {
+			continue;
+		} else {
+			return error!("{} is not installed", dep);
 		}
 	}
+	return Ok(());
 }
-
-/// Prints an error message and terminates the process.
-///
-/// # Input
-/// - `message`: A string slice containing the error message to display.
-/// - `e`: An optional `io::Error` that, if provided, will be included in the error message for additional context.
-///
-/// # Output
-/// - This function does not return. It terminates the process with an exit status of 1.
-///
-/// # Termination
-/// - This function always terminates.
-pub fn abort(message: &str, e: Option<&dyn Error>) -> ! {
-	if let Some(error) = e {
-		eprintln!("Error: {}: {}", message, error);
-	} else {
-		eprintln!("Error: {}", message);
-	}
-	process::exit(1);
-}
-
-/// Prints a critical error message and terminates the process with a status code of 1. The error message is prefixed with "Catastrophic failure: " and is highlighted in bold red text to emphasize the severity.
-///
-/// # Arguments
-/// - `message`: A string slice containing the critical error message to display.
-/// - `e`: An optional `io::Error` that, if provided, will be included in the error message for additional context.
-///
-/// # Output
-/// - This function does not return. It terminates the process with an exit status of 1.
-///
-/// # Termination
-/// - This function always terminates.
-pub fn catastrophic_failure(message: &str, e: Option<&dyn Error>) -> ! {
-	const RED_BOLD: &str = "\x1b[1;31m"; // Bold red text
-	const RESET: &str = "\x1b[0m"; // Reset formatting
-	if let Some(error) = e {
-		eprintln!(
-			"{}Catastrophic failure: {}: {}{}",
-			RED_BOLD, message, error, RESET
-		);
-	} else {
-		eprintln!("{}Catastrophic failure: {}{}", RED_BOLD, message, RESET);
-	}
-	process::exit(1);
-} // todo mabye possible to just print RED_BOLD then call abort idk
 
 /// Checks if the paths used in pen exists.
 ///
@@ -251,64 +198,60 @@ pub fn catastrophic_failure(message: &str, e: Option<&dyn Error>) -> ! {
 ///
 /// # Guarantees
 /// - If the function returns, the paths are considered to be existing.
-pub fn assert_global_paths() {
-	match HOME_DIR.try_exists() {
-		Ok(true) => {
-			// not the same as .is_file() because of error coercion
-			if !HOME_DIR.is_dir() {
-				abort("todo", None);
-			}
+pub fn assert_global_paths() -> Result<(), AnyError> {
+	let home_dir_exists = HOME_DIR.try_exists()?;
+
+	if home_dir_exists {
+		if !HOME_DIR.is_dir() {
+			return error!("Error: {} is not a directory.", HOME_DIR.display());
 		}
-		Ok(false) => abort(&format!("{} does not exist.", HOME_DIR.display()), None),
-		Err(e) => abort(
-			&format!("Failed to check if directory {} exists", HOME_DIR.display()),
-			Some(&e),
-		),
+	} else {
+		return error!("Error: {} does not exist.", HOME_DIR.display());
 	}
 
 	// No need to check for PEN_BIN since it is only used when uninstalling, where it is checked for existence.
-	let dirs_to_check = vec![
-		(&*PEN_DIR),
-		(&*PYTHON_PACKAGES_DIR),
-		(&*TMP_DIR),
-		(&*PYTHON_VERSIONS_DIR),
-	];
+	let dirs_to_check = vec![(&*PEN_DIR), (&*PYTHON_PACKAGES_DIR), (&*TMP_DIR), (&*PYTHON_VERSIONS_DIR)];
 
 	for path in dirs_to_check {
-		match path.try_exists() {
-			Ok(true) => {
-				if path.is_dir() {
-					continue;
-				} else {
-					abort("todo", None);
-				}
-			}
-			Ok(false) => {
-				println!("{}", path.display());
-				if let Err(e) = fs::create_dir_all(path) {
-					abort(
-						&format!("Failed to create directory {}", path.display()),
-						Some(&e),
-					);
-				}
-			}
-			Err(e) => abort(
-				&format!("Failed to check if directory {} exists", path.display()),
-				Some(&e),
-			),
-		}
+		guard!(create_dir_if_missing(path, false), "todo");
 	}
 
-	match PEN_CONFIG_FILE.try_exists() {
-		Ok(true) => (),
-		Ok(false) => {
-			if let Err(e) = fs::File::create_new(&*PEN_CONFIG_FILE) {
-				abort("todo", Some(&e));
+	let pen_config_file_exists = guard!(PEN_CONFIG_FILE.try_exists(), "todo");
+
+	if !pen_config_file_exists {
+		guard!(fs::File::create_new(&*PEN_CONFIG_FILE), "todo");
+	}
+
+	return Ok(());
+}
+
+// todo docstring
+pub fn create_dir_if_missing(dir_path: &PathBuf, overwrite: bool) -> Result<(), AnyError> {
+	let dir_path_exists = guard!(dir_path.try_exists(), "todo");
+	if dir_path_exists {
+		if dir_path.is_file() && overwrite {
+			if overwrite {
+				guard!(fs::remove_file(dir_path), "todo");
+				guard!(fs::create_dir_all(dir_path), "todo");
+			} else {
+				return error!("Error: Path is a file, expected directory at {}", dir_path.display());
 			}
 		}
-		Err(e) => abort(
-			&format!("Failed to check if file {} exists", PEN_DIR.display()),
-			Some(&e),
-		),
+	} else {
+		guard!(fs::create_dir_all(dir_path), "todo")
 	}
+
+	return Ok(());
+}
+
+pub fn get_recursive_dependencies(config: &Config) -> Vec<Package> {
+	todo!()
+}
+
+pub fn download_dep_if_missing(dependency: &Package) -> () {
+	todo!()
+}
+
+pub fn get_info_of_package(package: &Package) {
+	// since the json returned from the url is very complicated, it is expected to add new information to return when needed since we do not want to specify a json structure.
 }

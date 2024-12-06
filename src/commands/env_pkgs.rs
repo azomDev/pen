@@ -1,12 +1,13 @@
-use crate::utils::{get_project_root, read_config};
+use crate::utils::{get_project_root, guard, read_config, AnyError};
 
-pub fn env_pkgs() {
-	let project_path = get_project_root();
+pub fn env_pkgs() -> Result<(), AnyError> {
+	let project_path = guard!(get_project_root(), "todo");
 
-	let config = read_config(&project_path);
+	let config = guard!(read_config(&project_path), "todo");
 
 	println!("Packages listed in pen.toml:");
 	for (package_name, _) in &config.packages {
 		println!("- {}", package_name);
 	}
+	return Ok(());
 }

@@ -5,45 +5,28 @@ use std::path::PathBuf;
 use toml;
 
 use crate::constants::CONFIG_FILE_NAME;
-use crate::utils::abort;
+use crate::utils::{guard, AnyError};
 
 // todo docstring
-pub fn read_config(project_path: &PathBuf) -> Config {
+pub fn read_config(project_path: &PathBuf) -> Result<Config, AnyError> {
 	let config_path = project_path.join(&*CONFIG_FILE_NAME);
-	match fs::read_to_string(&config_path) {
-		Ok(contents) => match toml::from_str::<Config>(&contents) {
-			Ok(toml) => toml,
-			Err(e) => abort(
-				&format!("Couldn't parse {}.", config_path.display()),
-				Some(&e),
-			),
-		},
-		Err(e) => abort(
-			&format!("Couldn't read {}.", config_path.display()),
-			Some(&e),
-		),
-	}
+	let contents = guard!(fs::read_to_string(&config_path), "Couldn't read {}.", config_path.display());
+	let toml = guard!(toml::from_str::<Config>(&contents), "Couldn't parse {}.", config_path.display());
+	return Ok(toml);
 }
 
 // todo docstring
-pub fn write_config(project_path: PathBuf, config: Config) {
-	match toml::to_string_pretty(&config) {
-		Ok(toml) => {
-			if let Err(e) = fs::write(project_path.join("pen.toml"), toml) {
-				abort(
-					&format!(
-						"Couldn't write to config file at {}.",
-						project_path.display()
-					),
-					Some(&e),
-				);
-			}
-		}
-		Err(e) => abort(
-			"Couldn't convert config to valid toml.\nPlease open an issue on Github.",
-			Some(&e),
-		),
-	}
+pub fn write_config(project_path: PathBuf, config: Config) -> Result<(), AnyError> {
+	let toml = guard!(
+		toml::to_string_pretty(&config),
+		"Couldn't convert config to valid toml.\nPlease open an issue on Github."
+	);
+	guard!(
+		fs::write(project_path.join("pen.toml"), toml),
+		"Couldn't write to config file at {}.",
+		project_path.display()
+	);
+	return Ok(());
 }
 
 #[derive(Serialize, Deserialize)]

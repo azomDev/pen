@@ -1,11 +1,12 @@
 use crate::constants::{PEN_BIN_FILE, PEN_CONFIG_FILE, PEN_DIR};
-use crate::utils::{self, abort};
-use std::{fs, process};
+use crate::utils::{self, guard, AnyError};
+use std::fs;
 
-pub fn pen_uninstall() {
-	if !utils::confirm_action("Are you sure you want to uninstall pen? (y/N)") {
+pub fn pen_uninstall() -> Result<(), AnyError> {
+	let user_said_yes = guard!(utils::confirm_action("Are you sure you want to uninstall pen? (y/N)"), "todo");
+	if !user_said_yes {
 		println!("Deletion canceled.");
-		process::exit(0);
+		return Ok(());
 	}
 
 	println!("Uninstalling pen...");
@@ -20,13 +21,9 @@ pub fn pen_uninstall() {
 
 	// Check if paths exist
 	for (path, is_dir) in paths_to_check {
-		match fs::exists(path) {
-			Ok(true) => existing_paths.push((path, is_dir)),
-			Ok(false) => (),
-			Err(e) => abort(
-				&format!("Error checking path {}:", path.display()),
-				Some(&e),
-			),
+		let path_exists = guard!(fs::exists(path), "Error checking path {}:", path.display());
+		if path_exists {
+			existing_paths.push((path, is_dir))
 		}
 	}
 
@@ -39,9 +36,9 @@ pub fn pen_uninstall() {
 		if is_dir {
 			if let Err(e) = fs::remove_dir_all(path) {
 				let message = format!(
-                    "Failed to remove directory '{}'. Please manually delete it to finish uninstalling.",
-                    path.display()
-                );
+					"Failed to remove directory '{}'. Please manually delete it to finish uninstalling.",
+					path.display()
+				);
 				catastrophic_failure_messages.push((message, e));
 			}
 		} else {
@@ -58,11 +55,9 @@ pub fn pen_uninstall() {
 	for (message, e) in catastrophic_failure_messages {
 		const RED_BOLD: &str = "\x1b[1;31m"; // Bold red text
 		const RESET: &str = "\x1b[0m"; // Reset formatting
-		eprintln!(
-			"{}Catastrophic failure: {}: {}{}",
-			RED_BOLD, message, e, RESET
-		);
+		eprintln!("{}Catastrophic failure: {}: {}{}", RED_BOLD, message, e, RESET);
 	}
 
 	println!("\x1b[32mUninstall complete.\x1b[0m");
+	return Ok(());
 }

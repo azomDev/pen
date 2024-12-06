@@ -1,4 +1,3 @@
-use crate::utils::abort;
 use home;
 use std::{path::PathBuf, sync::LazyLock};
 
@@ -8,7 +7,7 @@ pub static CONFIG_FILE_NAME: &str = "pen.toml";
 
 pub static HOME_DIR: LazyLock<PathBuf> = LazyLock::new(|| match home::home_dir() {
 	Some(dir) => dir,
-	None => abort("Failed to get home directory", None),
+	None => panic!("Could not get path of home directory."),
 });
 
 // pub static PEN_DIR: LazyLock<PathBuf> = LazyLock::new(|| HOME_DIR.join(".pen"));

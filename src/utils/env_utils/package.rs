@@ -1,200 +1,125 @@
+use crate::utils::{self, error, guard, AnyError};
+use semver::{Version, VersionReq};
+use serde::Deserialize;
 use std::{
 	collections::HashMap,
 	env::consts::{ARCH, OS},
 	fs::{self, File},
 	io::{copy, Cursor},
 };
-
-use semver::{Version, VersionReq};
-use serde::Deserialize;
 use zip::ZipArchive;
 
-use crate::utils::{self, abort};
-
 // todo docstring
-pub fn download_package(package: &Package, py_version: &Version) {
+pub fn download_package(package: &Package, py_version: &Version) -> Result<(), AnyError> {
 	println!("Downloading: {} v{}", package.name, package.version);
-	let url = match find_package_download_url(package, py_version) {
+	let url = match find_package_download_url(package, py_version)? {
 		Some(url) => url,
-		None => abort("This package doesn't seem compatible with your os.", None),
+		None => return error!("This package doesn't seem compatible with your os."),
 	};
-
-	let response = match ureq::get(&url).set("Accept", "application/json").call() {
-		Ok(res) => res,
-		Err(e) => abort("Couldn't request PyPi", Some(&e)),
-	};
+	// let request = minreq::get(&url).with_header("Accept", "application/json");
+	// let response = guard!(request.send(), "Couldn't request PyPi");
+	let request = ureq::get(&url).set("Accept", "application/json");
+	let response = guard!(request.call(), "Couldn't request PyPi");
 
 	if response.status() != 200 {
-		abort(
-			&format!(
-				"Package download request failed with status: {}.",
-				response.status()
-			),
-			None,
-		);
+		return error!("Package download request failed with status: {}.", response.status());
 	}
 
 	let mut buffer = Vec::new();
-	if let Err(e) = response.into_reader().read_to_end(&mut buffer) {
-		abort("Couldn't read the body of the response.", Some(&e));
-	}
-	let mut zip = match ZipArchive::new(Cursor::new(buffer)) {
-		Ok(zip) => zip,
-		Err(e) => abort(&format!("Couldn't uncompress {}.", package.name), Some(&e)),
-	};
+	guard!(response.into_reader().read_to_end(&mut buffer), "Couldn't read the body of the response.");
+	let mut zip = guard!(ZipArchive::new(Cursor::new(buffer)), "Couldn't uncompress {}.", package.name);
 
 	let extract_dir = utils::get_package_path(&package);
-	if let Err(e) = fs::create_dir_all(&extract_dir) {
-		abort("Couldn't create folder.", Some(&e))
-	}
-
+	guard!(fs::create_dir_all(&extract_dir), "Couldn't create folder.");
 	for i in 0..zip.len() {
-		let mut file = zip
-			.by_index(i)
-			.expect("File count changed while iterating.");
+		let mut file = zip.by_index(i).expect("File count changed while iterating.");
 		let out_path = extract_dir.join(file.name());
 
 		if file.is_dir() {
-			if let Err(e) = fs::create_dir_all(&out_path) {
-				abort("Couldn't create folder.", Some(&e))
-			}
+			guard!(fs::create_dir_all(&out_path), "Couldn't create folder.");
 		} else {
 			if let Some(parent) = out_path.parent() {
-				if let Err(e) = fs::create_dir_all(parent) {
-					abort("Couldn't create folder.", Some(&e))
-				}
+				guard!(fs::create_dir_all(parent), "Couldn't create folder.");
 			}
 
-			match File::create(&out_path) {
-				Ok(mut out_file) => {
-					if let Err(e) = copy(&mut file, &mut out_file) {
-						abort(
-							&format!("Couldn't write {} to disk.", out_path.display()),
-							Some(&e),
-						)
-					}
-				}
-				Err(e) => abort(
-					&format!("Couldn't create {}.", out_path.display()),
-					Some(&e),
-				),
-			}
+			let mut out_file = guard!(File::create(&out_path), "Couldn't create {}.", out_path.display());
+			guard!(copy(&mut file, &mut out_file), "Couldn't write {} to disk.", out_path.display());
 		}
 	}
+	return Ok(());
 }
 
 // todo docstring
-pub fn find_matching_package_version(name: &str, version_requirements: &VersionReq) -> Package {
-	let response = match ureq::get(&format!("https://pypi.org/pypi/{}/json", name))
-		.set("Accept", "application/json")
-		.call()
-	{
-		Ok(res) => res,
-		Err(e) => abort("Couldn't request PyPi.", Some(&e)),
-	};
+pub fn find_matching_package_version(name: &str, version_requirements: &VersionReq) -> Result<Package, AnyError> {
+	let request = ureq::get(&format!("https://pypi.org/pypi/{}/json", name)).set("Accept", "application/json");
+	let response = guard!(request.call(), "Couldn't request PyPi.");
 
 	if response.status() != 200 {
-		abort(
-			&format!(
-				"Package info request failed with status: {}.",
-				response.status()
-			),
-			None,
-		);
+		return error!("Package info request failed with status: {}.", response.status());
 	}
 
 	// Parse the response as JSON if expected
-	let json = match response.into_json::<ApiPackageResponse>() {
-		Ok(json) => json,
-		Err(e) => abort("Received an invalid response from PyPi.", Some(&e)),
-	};
+	let json = guard!(response.into_json::<ApiPackageResponse>(), "Received an invalid response from PyPi.");
 
 	let best_version = match json
 		.releases
 		.iter()
 		.filter_map(|(version, vec)| {
-			Some(version).filter(|_| !vec.is_empty()).and_then(|v| {
-				Version::parse(&v)
-					.ok()
-					.filter(|v| version_requirements.matches(&v))
-			})
+			Some(version)
+				.filter(|_| !vec.is_empty())
+				.and_then(|v| Version::parse(&v).ok().filter(|v| version_requirements.matches(&v)))
 		})
 		.max()
 	{
 		Some(version) => version,
-		None => abort(
-			&format!(
-				"No version matched {} for package {}.",
-				version_requirements, name
-			),
-			None,
-		),
+		None => todo!("No version matched {} for package {}.", version_requirements, name),
 	};
 
-	Package {
+	return Ok(Package {
 		name: String::from(&json.info.name), // todo why is this not just name?
 		version: best_version,
-	}
+	});
 }
 
 // todo docstring
-fn find_package_download_url(package: &Package, py_version: &Version) -> Option<String> {
-	let response = match ureq::get(&format!(
-		"https://pypi.org/pypi/{}/{}/json",
-		package.name, package.version
-	))
-	.set("Accept", "application/json")
-	.call()
-	{
-		Ok(res) => res,
-		Err(e) => abort("Couldn't request PyPi.", Some(&e)),
-	};
+fn find_package_download_url(package: &Package, py_version: &Version) -> Result<Option<String>, AnyError> {
+	let request = ureq::get(&format!("https://pypi.org/pypi/{}/{}/json", package.name, package.version)).set("Accept", "application/json");
+	let response = guard!(request.call(), "Couldn't request PyPi.");
 
 	if response.status() != 200 {
-		abort(
-			&format!(
-				"Package info request failed with status: {}.",
-				response.status()
-			),
-			None,
-		);
+		return error!("Package info request failed with status: {}.", response.status());
 	}
 
 	// Parse the response as JSON if expected
-	let json = match response.into_json::<ApiPackageVersionResponse>() {
-		Ok(json) => json,
-		Err(e) => abort("Received an invalid response from PyPi.", Some(&e)),
-	};
+	let json = guard!(
+		response.into_json::<ApiPackageVersionResponse>(),
+		"Received an invalid response from PyPi"
+	);
 
 	let python = format!("py{}{}", py_version.major, py_version.minor);
 	let arch = match OS {
 		"macos" if ARCH == "aarch64" => "arm64",
 		_ => ARCH,
 	};
-	json.urls
+
+	let idk = json
+		.urls
 		.iter()
 		.max_by(|a, b| {
 			let a = a.url.split("-").collect::<Vec<&str>>();
 			let b = b.url.split("-").collect::<Vec<&str>>();
 
 			(a.len() > 3).cmp(&(b.len() > 3)).then_with(|| {
-				let wheel = a[a.len() - 1]
-					.ends_with(".whl")
-					.cmp(&b[b.len() - 1].ends_with(".whl"));
-				let python = a[a.len() - 3]
-					.contains(&python)
-					.cmp(&b[b.len() - 3].contains(&python));
-				let arch = a[a.len() - 1]
-					.contains(arch)
-					.cmp(&b[b.len() - 1].contains(arch));
-				let os = a[a.len() - 1]
-					.contains(OS)
-					.cmp(&b[b.len() - 1].contains(OS));
+				let wheel = a[a.len() - 1].ends_with(".whl").cmp(&b[b.len() - 1].ends_with(".whl"));
+				let python = a[a.len() - 3].contains(&python).cmp(&b[b.len() - 3].contains(&python));
+				let arch = a[a.len() - 1].contains(arch).cmp(&b[b.len() - 1].contains(arch));
+				let os = a[a.len() - 1].contains(OS).cmp(&b[b.len() - 1].contains(OS));
 
 				wheel.then(python).then(arch).then(os)
 			})
 		})
-		.map(|p| p.url.clone())
+		.map(|p| p.url.clone());
+	return Ok(idk);
 }
 
 pub struct Package {

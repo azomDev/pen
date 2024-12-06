@@ -1,34 +1,21 @@
 use crate::constants::PYTHON_VERSIONS_DIR;
-use crate::utils::abort;
+use crate::utils::{error, guard, AnyError};
 use std::fs;
 
-pub fn py_list_versions() {
+pub fn py_list_versions() -> Result<(), AnyError> {
 	println!("Listing installed Python versions:");
-	let directory_entries = match fs::read_dir(&*PYTHON_VERSIONS_DIR) {
-		Ok(entries) => entries,
-		Err(e) => abort(
-			&format!("Failed to read {}", PYTHON_VERSIONS_DIR.display()),
-			Some(&e),
-		),
-	};
+	let directory_entries = guard!(fs::read_dir(&*PYTHON_VERSIONS_DIR), "Failed to read {}", PYTHON_VERSIONS_DIR.display());
 
 	let mut installed_versions: Vec<String> = Vec::new();
 
 	for directory_entry in directory_entries {
-		let directory_entry = match directory_entry {
-			Ok(entry) => entry,
-			Err(e) => abort("Failed to read directory entry", Some(&e)),
-		};
-
-		let entry_metadata = match directory_entry.metadata() {
-			Ok(metadata) => metadata,
-			Err(e) => abort("Failed to read metadata", Some(&e)),
-		};
+		let directory_entry = guard!(directory_entry, "Failed to read directory entry");
+		let entry_metadata = guard!(directory_entry.file_type(), "Failed to read metadata");
 
 		if entry_metadata.is_dir() {
 			match directory_entry.file_name().into_string() {
 				Ok(directory_name) => installed_versions.push(directory_name),
-				Err(_) => abort("Failed to convert file name to string", None),
+				Err(_) => return error!("Failed to convert file name to string"),
 			}
 		}
 	}
@@ -41,4 +28,5 @@ pub fn py_list_versions() {
 			println!("  - {}", version);
 		}
 	}
+	return Ok(());
 }
